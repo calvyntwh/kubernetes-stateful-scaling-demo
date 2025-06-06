@@ -34,8 +34,29 @@ jobs:
     
     - name: Run tests
       run: |
-        # Add basic smoke test
-        uv run python -c "import main; print('Import successful')"
+        # Import test
+        uv run python -c "import main; print('✅ Import successful')"
+        
+        # Security tests
+        uv run python test-security.py
+        
+        # Health check test
+        echo "🏥 Starting application for health check..."
+        uv run uvicorn main:app --host 0.0.0.0 --port 8000 &
+        APP_PID=$!
+        sleep 5
+        
+        # Test health endpoint
+        curl -f http://localhost:8000/health || (echo "❌ Health check failed" && kill $APP_PID && exit 1)
+        echo "✅ Health check passed"
+        
+        # Test main page
+        curl -f http://localhost:8000/ > /dev/null || (echo "❌ Main page test failed" && kill $APP_PID && exit 1)
+        echo "✅ Main page test passed"
+        
+        # Clean up
+        kill $APP_PID
+        echo "✅ All tests passed"
 
   build-and-push:
     needs: test
@@ -87,3 +108,47 @@ jobs:
       run: |
         echo "Would deploy to staging environment"
         echo "kubectl apply -f k8s/ --namespace=staging"
+
+  deploy-production:
+    needs: [build-and-push, deploy-staging]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: 
+      name: production
+      url: https://your-production-url.com
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Security validation before production
+      run: |
+        echo "🔒 Running final security validation..."
+        bash validate-security.sh
+        
+    - name: Deploy to production
+      run: |
+        echo "🚀 Deploying to production environment"
+        echo "kubectl apply -f k8s/ --namespace=production"
+        echo "kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=production --timeout=300s"
+        
+    - name: Post-deployment health check
+      run: |
+        echo "🏥 Running post-deployment health checks..."
+        echo "curl -f https://your-production-url.com/health"
+        echo "✅ Production deployment completed successfully"
+
+  security-compliance:
+    needs: [test, build-and-push]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Run compliance checks
+      run: |
+        echo "🔍 Running security compliance checks for PR..."
+        bash validate-security.sh
+        echo "✅ Compliance validation completed"

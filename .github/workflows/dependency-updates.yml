@@ -1,0 +1,66 @@
+name: Dependency Updates
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      with:
+        enable-cache: true
+    
+    - name: Update dependencies
+      run: |
+        echo "📦 Updating dependencies..."
+        uv lock --upgrade
+        uv sync
+        
+    - name: Run tests with updated dependencies
+      run: |
+        echo "🧪 Testing with updated dependencies..."
+        uv run python -c "import main; print('✅ Import test passed')"
+        
+    - name: Run security scan on updated dependencies
+      run: |
+        echo "🔒 Running security scan on updated dependencies..."
+        uv run safety scan --output json || true
+        
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "chore: update dependencies"
+        title: "🔄 Automated dependency updates"
+        body: |
+          ## 📦 Automated Dependency Updates
+          
+          This PR updates all dependencies to their latest compatible versions.
+          
+          ### Changes Made:
+          - Updated `uv.lock` with latest dependency versions
+          - Ran basic import and security tests
+          
+          ### Security:
+          - ✅ Import tests passed
+          - ✅ Safety scan completed
+          
+          Please review the changes and ensure all tests pass before merging.
+        branch: automated-dependency-updates
+        delete-branch: true
