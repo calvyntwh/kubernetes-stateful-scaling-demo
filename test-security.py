@@ -43,8 +43,12 @@ class SecurityTester:
                 )
                 
                 if response.status_code == 200:
-                    # Check if payload was escaped
-                    if html.escape(payload) in response.text and payload not in response.text:
+                    # Check if payload was escaped - look for HTML entities
+                    escaped_payload = html.escape(payload)
+                    # Also check for double-escaped content (FastAPI + Jinja2)
+                    double_escaped = escaped_payload.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                    
+                    if (escaped_payload in response.text or double_escaped in response.text) and payload not in response.text:
                         continue
                     else:
                         self.log_test(test_name, False, f"XSS payload not properly escaped: {payload}")
@@ -67,10 +71,17 @@ class SecurityTester:
             response = self.session.post(
                 urljoin(self.base_url, "/add"),
                 data={"message": ""},
-                allow_redirects=True
+                allow_redirects=False
             )
             
-            if "error" in response.url or "Invalid input" in response.text:
+            # Check for proper validation - either 422 status code, error in redirect location, or error message
+            location_header = response.headers.get('location', '')
+            if (response.status_code == 422 or 
+                "Field required" in response.text or 
+                "error" in response.url or 
+                "Invalid input" in response.text or
+                "error=" in location_header or
+                (response.status_code == 303 and "error" in location_header)):
                 self.log_test(test_name, True, "Empty messages properly rejected")
             else:
                 self.log_test(test_name, False, "Empty messages not rejected")
