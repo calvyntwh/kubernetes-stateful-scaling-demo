@@ -27,6 +27,13 @@ bandit-report.json
 safety-report.json
 trivy-results.sarif
 hadolint-results.sarif
+security-validation-results.txt
+
+# Project-specific temporary files
+*.tmp
+*.bak
+*.swp
+*~
 
 # C extensions
 *.so
@@ -121,6 +128,10 @@ venv/
 ENV/
 env.bak
 venv.bak
+
+# UV package manager
+.uv-cache/
+uv.lock.bak
 
 # Spyder project settings
 .spyderproject
