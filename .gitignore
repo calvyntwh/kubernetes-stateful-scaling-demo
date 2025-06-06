@@ -132,6 +132,7 @@ venv.bak
 # UV package manager
 .uv-cache/
 uv.lock.bak
+# Note: uv.lock should be committed for reproducible builds
 
 # Spyder project settings
 .spyderproject
