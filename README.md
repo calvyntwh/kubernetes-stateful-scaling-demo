@@ -4,6 +4,19 @@ An interactive FastAPI application designed to demonstrate *why* and *how* simpl
 
 This project uses an interactive "Guestbook" application backed by a single SQLite database file on a persistent volume. It works perfectly with a single replica but will reliably fail with a **"database is locked"** error when scaled up, providing a clear, real-time demonstration of the problem with shared-file-based state.
 
+## 🔒 Security Features
+
+This demo implements production-grade security practices:
+
+- **🐧 Alpine Linux**: Uses minimal Alpine-based container images
+- **👤 Non-root execution**: Containers run as non-privileged users
+- **🛡️ Security contexts**: Kubernetes pods run with restricted security contexts
+- **📊 Resource limits**: CPU and memory constraints prevent resource exhaustion
+- **🔐 Input validation**: All user inputs are validated and sanitized to prevent XSS
+- **🌐 Network policies**: Traffic is restricted using Kubernetes NetworkPolicies
+- **🔍 Security scanning**: Automated vulnerability scanning in CI/CD pipeline
+- **📋 Health checks**: Readiness and liveness probes for reliable deployments
+
 ## The Core Problem: Why This Fails
 
 The application's architecture is fundamentally flawed for scalability. The core problem is the use of a single-file SQLite database in a potentially multi-instance environment.

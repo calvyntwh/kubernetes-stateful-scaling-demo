@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stateful-app-deployment
+  labels:
+    app: stateful-app
+    version: v1
+spec:
+  replicas: 1 # Cannot be scaled easily due to stateful nature
+  selector:
+    matchLabels:
+      app: stateful-app
+  template:
+    metadata:
+      labels:
+        app: stateful-app
+        version: v1
+    spec:
+      # Service account for RBAC
+      serviceAccountName: stateful-app-sa
+      automountServiceAccountToken: false
+      # Pod-level security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: stateful-app
+        image: your-dockerhub-username/stateful-guestbook:latest # Replace with your image
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        # Container-level security context
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          runAsNonRoot: true
+          runAsUser: 1000
+        # Resource limits and requests
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        # Health checks
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          timeoutSeconds: 5
+          failureThreshold: 3
+        # Volume mounts
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+        - name: tmp-volume
+          mountPath: /tmp
+        # Environment variables for better configuration
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        - name: LOG_LEVEL
+          value: "INFO"
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: stateful-app-pvc
+      - name: tmp-volume
+        emptyDir: {}
+      # Restart policy
+      restartPolicy: Always
