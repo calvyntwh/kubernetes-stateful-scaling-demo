@@ -42,7 +42,7 @@ security-scan: ## Run security validation script
 lint: ## Run code linting
 	@echo "🔍 Running linters..."
 	uv run bandit -r . -f json || true
-	uv run safety check --json || true
+	uv run safety scan --output json || true
 
 scan-docker: build ## Run Docker security scanning
 	@echo "🐳 Running Docker security scans..."
@@ -140,5 +140,5 @@ deps-update: ## Update dependencies to latest versions
 
 deps-audit: ## Check for security vulnerabilities in dependencies
 	@echo "🔍 Auditing dependencies for security vulnerabilities..."
-	uv run safety check --json
+	uv run safety scan --output json
 	@echo "✅ Dependency audit complete"

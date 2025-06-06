@@ -22,9 +22,9 @@ COPY pyproject.toml requirements.txt ./
 
 # Install system dependencies and Python packages with uv
 RUN apk add --no-cache --virtual .build-deps \
-    gcc \
-    musl-dev \
-    libffi-dev \
+    gcc=14.2.0-r6 \
+    musl-dev=1.2.5-r10 \
+    libffi-dev=3.4.8-r0 \
     && uv pip install --system --no-cache -r requirements.txt \
     && apk del .build-deps \
     && rm -rf /var/cache/apk/* \

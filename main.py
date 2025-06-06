@@ -54,9 +54,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 DATABASE_FILE = os.getenv("DATABASE_FILE", "/data/database.db")
 DATABASE_URL = f"sqlite:///{DATABASE_FILE}"
 
-# Ensure data directory exists
-os.makedirs(os.path.dirname(DATABASE_FILE), exist_ok=True)
-
 engine = create_engine(
     DATABASE_URL, 
     echo=False,  # Set to False in production to avoid logging sensitive data
@@ -75,6 +72,9 @@ class Config(SQLModel, table=True):
 # --- Database Initialization ---
 def create_db_and_tables():
     try:
+        # Ensure data directory exists
+        os.makedirs(os.path.dirname(DATABASE_FILE), exist_ok=True)
+        
         SQLModel.metadata.create_all(engine)
         logger.info("Database tables created successfully")
     except Exception as e:
