@@ -3,6 +3,31 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Security and secrets
+.env
+.env.local
+.env.production
+.env.staging
+*.key
+*.pem
+*.crt
+*.p12
+secrets/
+.secrets/
+
+# Database files (for local development)
+*.db
+*.sqlite
+*.sqlite3
+data/
+/data
+
+# Security scan results
+bandit-report.json
+safety-report.json
+trivy-results.sarif
+hadolint-results.sarif
+
 # C extensions
 *.so
 
