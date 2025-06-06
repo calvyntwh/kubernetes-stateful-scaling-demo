@@ -30,6 +30,7 @@ spec:
       containers:
       - name: stateful-app
         image: your-dockerhub-username/stateful-guestbook:latest # Replace with your image
+        imagePullPolicy: Always  # Always pull latest for security updates
         ports:
         - containerPort: 8000
           name: http

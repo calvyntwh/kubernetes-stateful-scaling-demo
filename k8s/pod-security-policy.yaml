@@ -1,4 +1,19 @@
-apiVersion: policy/v1beta1
+# ⚠️  DEPRECATED: Pod Security Policies are deprecated in Kubernetes 1.21+ and removed in 1.25+
+# 🔄 REPLACEMENT: Use Pod Security Standards (see namespace.yaml and security-config.yaml)
+# 
+# This file is kept for reference but should not be applied to modern clusters.
+# Instead, use Pod Security Standards at the namespace level:
+#
+# Pod Security Standards Configuration:
+# - pod-security.kubernetes.io/enforce: restricted
+# - pod-security.kubernetes.io/audit: restricted
+# - pod-security.kubernetes.io/warn: restricted
+#
+# See: https://kubernetes.io/docs/concepts/security/pod-security-standards/
+
+# LEGACY PSP (DO NOT USE ON KUBERNETES 1.25+)
+# Uncomment below only for Kubernetes < 1.25
+# apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
   name: stateful-app-psp

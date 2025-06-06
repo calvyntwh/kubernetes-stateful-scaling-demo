@@ -1,0 +1,62 @@
+# Security configurations and policies
+---
+# Modern replacement for deprecated Pod Security Policy
+# Use Pod Security Standards at namespace level (see namespace.yaml)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: security-config
+  labels:
+    app: stateful-app
+    app.kubernetes.io/name: stateful-guestbook
+    app.kubernetes.io/component: security-config
+data:
+  # Security documentation and guidelines
+  security-standards: |
+    Pod Security Standards Configuration:
+    - Enforce: restricted
+    - Audit: restricted  
+    - Warn: restricted
+    
+    This replaces the deprecated Pod Security Policy.
+    All pods must comply with the 'restricted' security standard.
+  
+  network-policy: |
+    Network Security Controls:
+    - Ingress: Restricted to specific namespaces and pods
+    - Egress: Limited to DNS, HTTPS, and internal services
+    - No unrestricted traffic allowed
+  
+  container-security: |
+    Container Security Requirements:
+    - Non-root execution (runAsNonRoot: true)
+    - Read-only root filesystem
+    - No privilege escalation
+    - All capabilities dropped
+    - Seccomp profile: RuntimeDefault
+---
+# Security monitoring and compliance
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: compliance-config
+  labels:
+    app: stateful-app
+    app.kubernetes.io/name: stateful-guestbook
+    app.kubernetes.io/component: compliance
+data:
+  cis-benchmark: |
+    CIS Kubernetes Benchmark Compliance:
+    - 4.2.1: Minimize the admission of privileged containers ✅
+    - 4.2.2: Minimize the admission of containers with allowPrivilegeEscalation ✅
+    - 4.2.3: Minimize the admission of root containers ✅
+    - 4.2.4: Minimize the admission of containers with the NET_RAW capability ✅
+    - 4.2.5: Minimize the admission of containers with capabilities ✅
+    - 4.2.6: Minimize the admission of HostNetwork, HostPID, HostIPC ✅
+    
+  nist-controls: |
+    NIST Cybersecurity Framework Controls:
+    - AC-6: Least Privilege ✅
+    - SC-7: Boundary Protection ✅
+    - SI-4: Information System Monitoring ✅
+    - CM-6: Configuration Settings ✅

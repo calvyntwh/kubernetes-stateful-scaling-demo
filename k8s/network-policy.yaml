@@ -4,6 +4,8 @@ metadata:
   name: stateful-app-netpol
   labels:
     app: stateful-app
+    app.kubernetes.io/name: stateful-guestbook
+    app.kubernetes.io/component: network-policy
 spec:
   podSelector:
     matchLabels:
@@ -12,7 +14,25 @@ spec:
   - Ingress
   - Egress
   ingress:
-  - from: []
+  # Allow traffic from ingress controllers
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8000
+  # Allow traffic from monitoring systems
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 8000
+  # Allow traffic from same namespace for demo purposes
+  - from:
+    - podSelector: {}
     ports:
     - protocol: TCP
       port: 8000
@@ -24,10 +44,8 @@ spec:
       port: 53
     - protocol: TCP
       port: 53
-  # Allow outbound HTTP/HTTPS for potential package updates (demo only)
+  # Allow HTTPS for secure communications
   - to: []
     ports:
-    - protocol: TCP
-      port: 80
     - protocol: TCP
       port: 443
