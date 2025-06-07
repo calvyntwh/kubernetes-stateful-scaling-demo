@@ -43,6 +43,9 @@ jobs:
         uv run bandit -r . -ll || true  # Also show human-readable output
         echo "Bandit security scan completed"
 
+    - name: Build Docker image
+      run: docker build -t stateful-guestbook:latest .
+
     - name: Run custom security tests
       run: |
         echo "🔒 Running custom security test suite..."
@@ -51,9 +54,6 @@ jobs:
         uv run python test-security.py || true
         docker stop test-app && docker rm test-app
         echo "✅ Custom security tests completed"
-
-    - name: Build Docker image
-      run: docker build -t stateful-guestbook:latest .
 
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master

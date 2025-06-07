@@ -106,8 +106,9 @@ jobs:
       
     - name: Deploy to staging
       run: |
-        echo "Would deploy to staging environment"
-        echo "kubectl apply -f k8s/ --namespace=staging"
+        echo "🎭 Deploying to staging environment with Kustomize..."
+        echo "kubectl apply -k k8s/overlays/staging"
+        echo "kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=stateful-staging --timeout=120s"
 
   deploy-production:
     needs: [build-and-push, deploy-staging]
@@ -128,9 +129,9 @@ jobs:
         
     - name: Deploy to production
       run: |
-        echo "🚀 Deploying to production environment"
-        echo "kubectl apply -f k8s/ --namespace=production"
-        echo "kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=production --timeout=300s"
+        echo "🚀 Deploying to production environment with Kustomize..."
+        echo "kubectl apply -k k8s/overlays/production"
+        echo "kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=stateful-production --timeout=300s"
         
     - name: Post-deployment health check
       run: |

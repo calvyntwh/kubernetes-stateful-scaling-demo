@@ -29,9 +29,9 @@ required_files=(
     ".dockerignore"
     "SECURITY.md"
     "requirements.txt"
-    "k8s/deployment.yaml"
-    "k8s/network-policy-simple.yaml"
-    "k8s/security-config.yaml"
+    "k8s/base/deployment.yaml"
+    "k8s/base/network-policy-simple.yaml"
+    "k8s/base/security-config.yaml"
     ".github/workflows/security-scan.yml"
 )
 
@@ -67,38 +67,38 @@ fi
 # Check Kubernetes security
 echo -e "\n☸️  Checking Kubernetes security..."
 
-if grep -q "securityContext:" k8s/deployment.yaml; then
+if grep -q "securityContext:" k8s/base/deployment.yaml; then
     check_passed "Deployment has security context"
 else
     check_failed "Deployment missing security context"
 fi
 
-if grep -q "runAsNonRoot: true" k8s/deployment.yaml; then
+if grep -q "runAsNonRoot: true" k8s/base/deployment.yaml; then
     check_passed "Deployment enforces non-root execution"
 else
     check_failed "Deployment not enforcing non-root execution"
 fi
 
-if grep -q "readOnlyRootFilesystem: true" k8s/deployment.yaml; then
+if grep -q "readOnlyRootFilesystem: true" k8s/base/deployment.yaml; then
     check_passed "Deployment uses read-only root filesystem"
 else
     check_failed "Deployment not using read-only root filesystem"
 fi
 
-if grep -q "resources:" k8s/deployment.yaml; then
+if grep -q "resources:" k8s/base/deployment.yaml; then
     check_passed "Deployment has resource limits"
 else
     check_failed "Deployment missing resource limits"
 fi
 
 # Check for health checks
-if grep -q "readinessProbe:" k8s/deployment.yaml; then
+if grep -q "readinessProbe:" k8s/base/deployment.yaml; then
     check_passed "Deployment has readiness probe"
 else
     check_failed "Deployment missing readiness probe"
 fi
 
-if grep -q "livenessProbe:" k8s/deployment.yaml; then
+if grep -q "livenessProbe:" k8s/base/deployment.yaml; then
     check_passed "Deployment has liveness probe"
 else
     check_failed "Deployment missing liveness probe"
