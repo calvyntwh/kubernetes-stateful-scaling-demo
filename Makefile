@@ -109,7 +109,15 @@ health-check: ## Check application health and security headers
 	@curl -s http://localhost:8000/health | head -1
 	@echo "✅ Health check complete"
 
-all: build security-scan test ## Build, scan, and test everything
+all: build security-scan test run-security-test ## Build, scan, and test everything
+
+run-security-test: ## Run security tests with automatic app lifecycle management
+	@echo "🔒 Running complete security testing..."
+	@$(MAKE) run
+	@sleep 10  # Wait for application to start
+	@$(MAKE) security-test
+	@$(MAKE) stop
+	@echo "✅ Complete security testing finished"
 
 deps-install: ## Install dependencies with uv
 	uv sync --frozen

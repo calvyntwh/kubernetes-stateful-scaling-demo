@@ -1,8 +1,6 @@
 services:
   stateful-guestbook:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: stateful-guestbook:latest
     ports:
       - "8000:8000"
     volumes:
