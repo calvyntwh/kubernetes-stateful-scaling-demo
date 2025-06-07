@@ -29,9 +29,8 @@ This project demonstrates the fundamental scaling limitations of stateful applic
 - Kubernetes cluster (minikube, Docker Desktop, etc.)
 - kubectl configured
 - Make utility
-- **Kustomize** (built into kubectl v1.14+)
 
-### Deploy with Kustomize (Recommended)
+### Deploy with Kustomize
 ```bash
 # Deploy to demo environment
 make k8s-deploy
@@ -47,18 +46,6 @@ make k8s-scale-demo REPLICAS=3
 
 # Check status across all environments
 make k8s-status-all
-```
-
-### Deploy with Legacy YAML (Alternative)
-```bash
-# Build and deploy using legacy method
-make k8s-deploy-legacy
-
-# Scale to see the problem
-make k8s-scale-legacy REPLICAS=3
-
-# Test the scaling failure
-kubectl get pods -l app=stateful-app
 ```
 
 ## 📊 Demo Results
@@ -121,9 +108,9 @@ make security-test
 
 # Kubernetes operations
 make k8s-deploy
-make k8s-scale REPLICAS=3
+make k8s-scale-demo REPLICAS=3
 make k8s-logs
-make k8s-status
+make k8s-status-all
 make k8s-clean
 ```
 
@@ -236,7 +223,7 @@ make scan-docker          # Docker security scanning
 make lint                 # Fast security linting with bandit
 make lint-full            # Comprehensive linting (slower)
 
-# Kustomize Commands (Recommended)
+# Kustomize Commands
 make k8s-deploy           # Deploy to demo environment
 make k8s-deploy-staging   # Deploy to staging environment  
 make k8s-deploy-production # Deploy to production environment
@@ -247,11 +234,6 @@ make k8s-status-all       # Show status of all environments
 make k8s-scale-demo       # Scale demo deployment (REPLICAS=N)
 make k8s-clean            # Clean up all environments
 make k8s-clean-demo       # Clean up demo environment only
-
-# Legacy Commands
-make k8s-deploy-legacy    # Deploy using legacy YAML files
-make k8s-scale-legacy     # Scale deployment (legacy method)
-make k8s-clean-legacy     # Clean up using legacy method
 
 # Other Commands
 make k8s-status           # Show deployment status

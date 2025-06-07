@@ -1,4 +1,4 @@
-.PHONY: help build run test clean security-test k8s-deploy k8s-clean
+.PHONY: help build run test clean security-test k8s-deploy k8s-deploy-staging k8s-deploy-production k8s-clean k8s-clean-demo k8s-scale k8s-scale-demo k8s-logs k8s-status k8s-security-check k8s-compliance-report k8s-benchmark k8s-diff k8s-validate k8s-preview k8s-status-all
 
 # Default values
 IMAGE_NAME ?= stateful-guestbook
@@ -10,7 +10,7 @@ help: ## Show this help message
 	@echo 'Usage: make [target]'
 	@echo ''
 	@echo 'Targets:'
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ": ## "} /^[a-zA-Z0-9_-]+: ## / {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 build: ## Build Docker image
 	@echo "🔨 Building Docker image..."
@@ -61,19 +61,6 @@ k8s-deploy: ## Deploy to Kubernetes (default environment)
 	kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=stateful-demo --timeout=120s
 	@echo "✅ Deployed to Kubernetes with enhanced security"
 
-k8s-deploy-legacy: ## Deploy using legacy YAML files
-	@echo "☸️  Deploying to Kubernetes (legacy method)..."
-	kubectl apply -f k8s/namespace.yaml
-	kubectl apply -f k8s/security-config.yaml --namespace=$(NAMESPACE)
-	kubectl apply -f k8s/persistent-volume.yaml
-	kubectl apply -f k8s/persistent-volume-claim.yaml --namespace=$(NAMESPACE)
-	kubectl apply -f k8s/rbac.yaml --namespace=$(NAMESPACE)
-	kubectl apply -f k8s/network-policy-simple.yaml --namespace=$(NAMESPACE)
-	kubectl apply -f k8s/deployment.yaml --namespace=$(NAMESPACE)
-	kubectl apply -f k8s/service.yaml --namespace=$(NAMESPACE)
-	kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=$(NAMESPACE) --timeout=120s
-	@echo "✅ Deployed to Kubernetes with enhanced security"
-
 k8s-deploy-staging: ## Deploy to staging environment
 	@echo "🎭 Deploying to staging environment..."
 	kubectl apply -k k8s/overlays/staging
@@ -99,12 +86,6 @@ k8s-clean-demo: ## Clean up demo environment only
 	kubectl delete -k k8s/overlays/demo --ignore-not-found=true
 	@echo "✅ Demo environment cleaned up"
 
-k8s-clean-legacy: ## Clean up Kubernetes resources (legacy method)
-	@echo "🧹 Cleaning up Kubernetes resources..."
-	kubectl delete deployment,service,pvc,configmap,secret,networkpolicy,serviceaccount,role,rolebinding --selector=app=stateful-app --namespace=$(NAMESPACE) --ignore-not-found=true
-	kubectl delete namespace $(NAMESPACE) --ignore-not-found=true
-	@echo "✅ Kubernetes resources cleaned up"
-
 k8s-scale: ## Scale deployment (usage: make k8s-scale REPLICAS=3 ENV=demo)
 	@echo "📈 Scaling deployment to $(REPLICAS) replicas in $(ENV) environment..."
 	kubectl scale deployment stateful-app-deployment --replicas=$(REPLICAS) --namespace=stateful-$(ENV)
@@ -114,11 +95,6 @@ k8s-scale-demo: ## Scale demo deployment (usage: make k8s-scale-demo REPLICAS=3)
 	@echo "📈 Scaling demo deployment to $(REPLICAS) replicas..."
 	kubectl scale deployment stateful-app-deployment --replicas=$(REPLICAS) --namespace=stateful-demo
 	@echo "✅ Scaled demo to $(REPLICAS) replicas"
-
-k8s-scale-legacy: ## Scale deployment (legacy method)
-	@echo "📈 Scaling deployment to $(REPLICAS) replicas..."
-	kubectl scale deployment stateful-app-deployment --replicas=$(REPLICAS) --namespace=$(NAMESPACE)
-	@echo "✅ Scaled to $(REPLICAS) replicas"
 
 k8s-logs: ## Show application logs
 	kubectl logs -l app=stateful-app --namespace=$(NAMESPACE) --tail=50 -f
