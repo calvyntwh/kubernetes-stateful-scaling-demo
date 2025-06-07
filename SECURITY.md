@@ -157,5 +157,5 @@ We appreciate the security community's efforts in keeping this project secure. R
 
 ---
 
-**Last Updated**: 2024-12-27
+**Last Updated**: 2025-06-07
 **Security Contact**: [Add your contact information]

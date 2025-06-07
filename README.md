@@ -38,7 +38,7 @@ This demo implements production-grade security practices with **zero vulnerabili
 - **💚 Health checks**: Readiness and liveness probes for reliable deployments
 
 ### DevSecOps Pipeline
-- **🔍 Vulnerability scanning**: Automated scanning with Docker Scout, Trivy, pip-audit
+- **🔍 Vulnerability scanning**: Automated scanning with Docker Scout, Trivy, Safety
 - **🔒 Security linting**: Bandit security analysis and code scanning
 - **📊 CI/CD security gates**: Automated security validation in GitHub Actions
 - **🧪 Security testing**: Comprehensive security test framework
@@ -89,6 +89,9 @@ make k8s-deploy
 
 # Scale to trigger the failure
 make k8s-scale REPLICAS=3
+
+# Run the complete scaling demo
+make demo
 ```
 
 ### 1. Local Development with UV
@@ -106,7 +109,7 @@ DATABASE_FILE="./data/guestbook.db" uv run uvicorn main:app --host 0.0.0.0 --por
 uv run python test-security.py
 
 # Check for vulnerabilities
-uv run pip-audit
+uv run safety scan
 ```
 
 ### 2. Build the Docker Image
@@ -238,14 +241,21 @@ make test           # Run basic tests
 make security-test  # Run security tests
 make security-scan  # Complete security validation
 make scan-docker    # Docker security scanning
-make lint           # Security linting with bandit
+make lint           # Fast security linting with bandit
+make lint-full      # Comprehensive linting (slower)
 make k8s-deploy     # Deploy to Kubernetes
 make k8s-scale      # Scale deployment (REPLICAS=N)
 make k8s-clean      # Clean up Kubernetes resources
 make k8s-status     # Show deployment status
 make k8s-logs       # View application logs
+make demo           # Run the scaling failure demo
+make health-check   # Check application health and security headers
+make push           # Build and push Docker image to registry
 make clean          # Clean up local resources
 make all            # Build, scan, and test everything
+make deps-install   # Install dependencies with uv
+make deps-update    # Update dependencies to latest versions
+make deps-audit     # Check for security vulnerabilities in dependencies
 ```
 
 ### UV Package Manager
@@ -253,8 +263,8 @@ make all            # Build, scan, and test everything
 ```bash
 uv sync                    # Install dependencies
 uv run uvicorn main:app    # Run development server
-uv run pip-audit           # Check for vulnerabilities  
-uv run bandit -r .         # Security linting
+uv run safety scan         # Check for vulnerabilities  
+uv run bandit main.py      # Security linting
 uv run pytest             # Run tests
 ```
 
@@ -263,7 +273,7 @@ uv run pytest             # Run tests
 This application maintains **zero known vulnerabilities**:
 
 - ✅ **Docker Scout**: 0 Critical, 0 High, 0 Medium, 0 Low
-- ✅ **pip-audit**: No known vulnerabilities found  
+- ✅ **Safety**: No known vulnerabilities found  
 - ✅ **Bandit**: Security linting passed
 - ✅ **Container Scan**: All security checks passed
 - ✅ **Security Headers**: All HTTP security headers active
