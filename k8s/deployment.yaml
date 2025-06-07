@@ -27,8 +27,8 @@ spec:
           type: RuntimeDefault
       containers:
       - name: stateful-app
-        image: your-dockerhub-username/stateful-guestbook:latest
-        imagePullPolicy: Always
+        image: stateful-guestbook:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 8000
           name: http
@@ -74,6 +74,8 @@ spec:
           value: "1"
         - name: LOG_LEVEL
           value: "INFO"
+        - name: UV_CACHE_DIR
+          value: "/tmp/uv-cache"
       volumes:
       - name: data-volume
         persistentVolumeClaim:

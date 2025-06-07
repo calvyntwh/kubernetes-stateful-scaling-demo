@@ -45,6 +45,13 @@ spec:
           service:
             name: stateful-app-service
             port:
+              number: 80
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: stateful-app-service
+            port:
               number: 8000
 ---
 # Alternative ingress for staging environment
@@ -78,6 +85,13 @@ spec:
   - host: staging.stateful-guestbook.yourdomain.com
     http:
       paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: stateful-app-service
+            port:
+              number: 80
       - path: /
         pathType: Prefix
         backend:
