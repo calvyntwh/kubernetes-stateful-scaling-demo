@@ -46,24 +46,15 @@ lint: ## Run code linting
 
 scan-docker: build ## Run Docker security scanning
 	@echo "🐳 Running Docker security scans..."
-	@echo "🔍 Scanning image with Docker Scout..."
-	@docker scout cves $(IMAGE_NAME):$(IMAGE_TAG) 2>/dev/null || echo "⚠️  Docker Scout not available - install with: docker scout --help"
-	@echo ""
-	@echo "🔒 Scanning with Trivy (if available)..."
-	@command -v trivy >/dev/null 2>&1 && trivy image --severity HIGH,CRITICAL $(IMAGE_NAME):$(IMAGE_TAG) || echo "⚠️  Trivy not installed - install with: brew install trivy"
-	@echo ""
-	@echo "🏗️  Analyzing Dockerfile with hadolint (if available)..."
-	@command -v hadolint >/dev/null 2>&1 && hadolint Dockerfile || echo "⚠️  hadolint not installed - install with: brew install hadolint"
-	@echo ""
+	@docker scout cves $(IMAGE_NAME):$(IMAGE_TAG) 2>/dev/null || echo "⚠️  Docker Scout not available"
+	@command -v trivy >/dev/null 2>&1 && trivy image --severity HIGH,CRITICAL $(IMAGE_NAME):$(IMAGE_TAG) || echo "⚠️  Trivy not installed"
+	@command -v hadolint >/dev/null 2>&1 && hadolint Dockerfile || echo "⚠️  hadolint not installed"
 	@echo "✅ Docker security scan complete"
 
 k8s-deploy: ## Deploy to Kubernetes
 	@echo "☸️  Deploying to Kubernetes..."
-	@echo "📦 Creating namespace with Pod Security Standards..."
 	kubectl apply -f k8s/namespace.yaml
-	@echo "🛡️  Applying security configurations..."
 	kubectl apply -f k8s/security-config.yaml --namespace=$(NAMESPACE)
-	@echo "🚀 Deploying application components..."
 	kubectl apply -f k8s/ --namespace=$(NAMESPACE)
 	kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=$(NAMESPACE) --timeout=60s
 	@echo "✅ Deployed to Kubernetes with enhanced security"

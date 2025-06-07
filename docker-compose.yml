@@ -11,7 +11,6 @@ services:
       - PYTHONUNBUFFERED=1
       - LOG_LEVEL=INFO
     restart: unless-stopped
-    # Security settings
     security_opt:
       - no-new-privileges:true
     read_only: true

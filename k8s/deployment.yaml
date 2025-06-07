@@ -6,7 +6,7 @@ metadata:
     app: stateful-app
     version: v1
 spec:
-  replicas: 1 # Cannot be scaled easily due to stateful nature
+  replicas: 1
   selector:
     matchLabels:
       app: stateful-app
@@ -16,10 +16,8 @@ spec:
         app: stateful-app
         version: v1
     spec:
-      # Service account for RBAC
       serviceAccountName: stateful-app-sa
       automountServiceAccountToken: false
-      # Pod-level security context
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -29,13 +27,12 @@ spec:
           type: RuntimeDefault
       containers:
       - name: stateful-app
-        image: your-dockerhub-username/stateful-guestbook:latest # Replace with your image
-        imagePullPolicy: Always  # Always pull latest for security updates
+        image: your-dockerhub-username/stateful-guestbook:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
           name: http
           protocol: TCP
-        # Container-level security context
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
@@ -44,7 +41,6 @@ spec:
             - ALL
           runAsNonRoot: true
           runAsUser: 1000
-        # Resource limits and requests
         resources:
           requests:
             memory: "64Mi"
@@ -52,7 +48,6 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "200m"
-        # Health checks
         readinessProbe:
           httpGet:
             path: /health
@@ -69,13 +64,11 @@ spec:
           periodSeconds: 20
           timeoutSeconds: 5
           failureThreshold: 3
-        # Volume mounts
         volumeMounts:
         - name: data-volume
           mountPath: /data
         - name: tmp-volume
           mountPath: /tmp
-        # Environment variables for better configuration
         env:
         - name: PYTHONUNBUFFERED
           value: "1"
@@ -87,5 +80,4 @@ spec:
           claimName: stateful-app-pvc
       - name: tmp-volume
         emptyDir: {}
-      # Restart policy
       restartPolicy: Always

@@ -1,7 +1,3 @@
-# Enhanced Network Policies with Advanced Security Controls
-# Kubernetes NetworkPolicy v1.29+ features
-
-# Primary Application Network Policy
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -14,7 +10,6 @@ metadata:
     security-tier: application
   annotations:
     network-policy.kubernetes.io/description: "Restricts network traffic to stateful application pods"
-    network-policy.kubernetes.io/last-reviewed: "2024-01-01"
 spec:
   podSelector:
     matchLabels:

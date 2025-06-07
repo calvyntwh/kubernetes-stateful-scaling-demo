@@ -1,7 +1,5 @@
 #!/bin/bash
-
 # Kubernetes Security Validation Script
-# Validates security posture of the stateful scaling demo
 
 set -e
 
@@ -11,24 +9,19 @@ echo "Target: Stateful Scaling Demo"
 echo "Date: $(date)"
 echo ""
 
-# Configuration
 NAMESPACE=${NAMESPACE:-default}
 APP_NAME="stateful-app"
 DEPLOYMENT_NAME="stateful-app-deployment"
 
-# Colors for output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Function to check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
-
-# Function to print status
 print_status() {
     local status=$1
     local message=$2

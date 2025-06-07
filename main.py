@@ -19,6 +19,8 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
 class MessageCreate(BaseModel):
     message: str = PydanticField(..., min_length=1, max_length=500)
     
@@ -37,25 +39,21 @@ class MessageCreate(BaseModel):
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
-        # Add security headers
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
         return response
-
-# --- Database Setup ---
 DATABASE_FILE = os.getenv("DATABASE_FILE", "/data/database.db")
 DATABASE_URL = f"sqlite:///{DATABASE_FILE}"
 
 engine = create_engine(
     DATABASE_URL, 
-    echo=False,  # Set to False in production to avoid logging sensitive data
+    echo=False,
     connect_args={"check_same_thread": False}
 )
 
-# --- SQLModel Models ---
 class GuestbookEntry(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     message: str
@@ -64,19 +62,15 @@ class Config(SQLModel, table=True):
     key: str = Field(primary_key=True)
     value: str
 
-# --- Database Initialization ---
 def create_db_and_tables():
     try:
-        # Ensure data directory exists
         os.makedirs(os.path.dirname(DATABASE_FILE), exist_ok=True)
-        
         SQLModel.metadata.create_all(engine)
         logger.info("Database tables created successfully")
     except Exception as e:
         logger.error(f"Failed to create database tables: {e}")
         raise
 
-# --- FastAPI Lifespan (Startup/Shutdown Events) ---
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Application starting up...")
@@ -97,26 +91,17 @@ async def lifespan(app: FastAPI):
     yield
     logger.info("Application shutting down...")
 
-
-# --- FastAPI App Instance ---
 app = FastAPI(lifespan=lifespan)
-
-# Add security middleware
 app.add_middleware(SecurityHeadersMiddleware)
-
 templates = Jinja2Templates(directory="templates")
 
-# --- Dependency to get a DB Session ---
 def get_session():
     with Session(engine) as session:
         yield session
 
-# --- API Routes ---
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request, session: Session = Depends(get_session), error: Optional[str] = None):
-    """
-    Displays the main page with guestbook entries.
-    """
+    """Display the main page with guestbook entries."""
     try:
         entries = session.exec(select(GuestbookEntry)).all()
         secret_from_db = session.exec(select(Config).where(Config.key == "secret_message")).first()
@@ -134,25 +119,19 @@ async def read_root(request: Request, session: Session = Depends(get_session), e
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint for Kubernetes probes"""
+    """Health check endpoint for Kubernetes probes."""
     return {"status": "healthy", "service": "stateful-guestbook"}
 
 @app.post("/add", response_class=RedirectResponse)
 async def add_entry(message: str = Form(...), session: Session = Depends(get_session)):
-    """
-    Handles the submission of a new guestbook entry.
-    """
+    """Handle the submission of a new guestbook entry."""
     try:
-        # Check for empty or whitespace-only messages first
         if not message or not message.strip():
             logger.warning("Empty message submission attempted")
             error_message = "Invalid input: Message cannot be empty"
             return RedirectResponse(url=f"/?error={error_message}", status_code=303)
         
-        # Validate and sanitize input
         message_data = MessageCreate(message=message)
-        
-        # Create new entry with sanitized message
         new_entry = GuestbookEntry(message=message_data.message)
         session.add(new_entry)
         session.commit()
@@ -166,8 +145,7 @@ async def add_entry(message: str = Form(...), session: Session = Depends(get_ses
         return RedirectResponse(url=f"/?error={error_message}", status_code=303)
         
     except OperationalError as e:
-        # This is the key part of the demo!
-        # If the database is locked, this exception will be raised.
+        # This demonstrates the database locking issue when scaling
         if "database is locked" in str(e).lower():
             logger.error("DEMO ERROR: Database is locked! This is expected when scaled > 1 replica.")
             error_message = "DATABASE IS LOCKED! This is the error you get when multiple application instances try to write to the same SQLite file at once."

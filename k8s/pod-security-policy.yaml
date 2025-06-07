@@ -1,7 +1,3 @@
-# Modern Pod Security Standards Configuration
-# This replaces the deprecated PodSecurityPolicy with namespace-level controls
-
-# Development Environment Security Configuration
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -13,20 +9,7 @@ metadata:
     environment: development
 data:
   policy.yaml: |
-    # Development Pod Security Configuration
-    # Based on Kubernetes Pod Security Standards v1.29+
-    
-    # Restricted Profile Requirements Met:
-    # ✓ Disallow privileged containers
-    # ✓ Disallow containers with allowPrivilegeEscalation
-    # ✓ Require non-root containers (runAsNonRoot: true)
-    # ✓ Disallow sharing the host process namespace
-    # ✓ Disallow sharing the host network namespace
-    # ✓ Disallow sharing the host IPC namespace
-    # ✓ Disallow sharing the host PID namespace
-    # ✓ Restrict volume types to approved list
-    # ✓ Require seccomp profile (RuntimeDefault or Localhost)
-    # ✓ Drop ALL capabilities and only allow minimal required ones
+    # Pod Security Configuration based on Kubernetes Pod Security Standards
     
     volumes:
       allowed:

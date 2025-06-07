@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-Security testing script for the Kubernetes Stateful Scaling Demo
-Tests various security aspects of the application
-"""
+"""Security testing script for the Kubernetes Stateful Scaling Demo."""
 
 import requests
 import html
@@ -26,7 +23,7 @@ class SecurityTester:
         self.test_results.append((test_name, passed, details))
     
     def test_xss_protection(self):
-        """Test XSS protection by submitting malicious payloads"""
+        """Test XSS protection by submitting malicious payloads."""
         test_name = "XSS Protection"
         xss_payloads = [
             "<script>alert('xss')</script>",
