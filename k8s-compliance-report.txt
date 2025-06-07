@@ -1,0 +1,7 @@
+=== CIS Kubernetes Benchmark Compliance ===
+Generated: Sun  8 Jun 2025 01:35:11 +08
+4.2.1 Privileged containers: COMPLIANT
+4.2.3 Root containers: COMPLIANT
+Pod Security Standards: IMPLEMENTED
+Network Policies: IMPLEMENTED
+RBAC: IMPLEMENTED

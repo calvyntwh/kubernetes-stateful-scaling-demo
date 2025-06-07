@@ -39,14 +39,29 @@ security-scan: ## Run security validation script
 	@echo "🔍 Running security validation..."
 	bash validate-security.sh
 
-lint: ## Run code linting
-	@echo "🔍 Running fast linting..."
-	@uv run bandit main.py test-security.py --quiet --format txt || true
+lint: ## Run fast code linting with Ruff
+	@echo "🔍 Running fast linting with Ruff..."
+	@uv run ruff check main.py test-security.py || true
 
-lint-full: ## Run comprehensive linting (slower)
-	@echo "🔍 Running comprehensive linting..."
-	@uv run bandit -r . -f json || true
-	@uv run safety scan --output json || true
+lint-full: ## Run comprehensive linting with Ruff + Bandit (CLI output)
+	@echo "🔍 Running comprehensive linting with Ruff and Bandit..."
+	@echo "📋 Ruff Analysis:"
+	@echo "================="
+	@uv run ruff check . || true
+	@echo ""
+	@echo "📋 Bandit Security Analysis:"
+	@echo "============================="
+	@uv run bandit main.py test-security.py || true
+	@echo "✅ Comprehensive linting complete"
+	@echo "💡 Use 'make lint-json' for CI/CD-friendly JSON output"
+
+lint-json: ## Generate JSON reports for CI/CD integration
+	@echo "🔍 Generating JSON linting reports for CI/CD..."
+	@echo "📋 Saving Ruff analysis to ruff-report.json..."
+	@uv run ruff check . --output-format json --output-file ruff-report.json || true
+	@echo "📋 Saving Bandit security analysis to bandit-report.json..."
+	@uv run bandit main.py test-security.py -f json -o bandit-report.json --quiet || true
+	@echo "✅ JSON reports saved to ruff-report.json and bandit-report.json"
 
 scan-docker: build ## Run Docker security scanning
 	@echo "🐳 Running Docker security scans..."
@@ -150,7 +165,14 @@ deps-update: ## Update dependencies to latest versions
 	uv sync
 
 deps-audit: ## Check for security vulnerabilities in dependencies
-	uv run safety scan --output json
+	@echo "🔍 Running dependency security audit..."
+	@uv run pip-audit --desc || true
+	@echo "💡 Use 'make deps-audit-json' for JSON output"
+
+deps-audit-json: ## Generate dependency audit JSON report
+	@echo "🔍 Generating dependency audit JSON report..."
+	@uv run pip-audit --format json --output pip-audit-report.json || true
+	@echo "✅ Dependency audit saved to pip-audit-report.json"
 
 k8s-security-check: ## Validate Kubernetes security configuration
 	@echo "🔒 Running Kubernetes security validation..."

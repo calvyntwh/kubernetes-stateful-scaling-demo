@@ -23,7 +23,6 @@ dev = [
     "pytest-asyncio>=0.21.0",
     "httpx>=0.24.0",
     "bandit>=1.7.0",
-    "safety>=2.0.0",
 ]
 
 [tool.uv]
@@ -31,8 +30,8 @@ dev-dependencies = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "httpx>=0.24.0",
+    "ruff>=0.6.0",
     "bandit>=1.7.0",
-    "safety>=2.0.0",
     "pip-audit>=2.9.0",
 ]
 
@@ -40,6 +39,50 @@ dev-dependencies = [
 exclude_dirs = ["tests", "venv", ".venv", "__pycache__", "data", "k8s", "templates"]
 skips = ["B101"]  # Skip assert_used test
 targets = ["main.py", "test-security.py"]
+
+[tool.ruff]
+# Exclude directories
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "data",
+    "k8s",
+    "templates",
+]
+
+# Same as Black.
+line-length = 88
+indent-width = 4
+
+# Assume Python 3.13
+target-version = "py313"
+
+[tool.ruff.lint]
+# Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
+# Plus security (`S`), bugbear (`B`), and other useful rules
+select = ["E", "F", "S", "B", "I", "N", "UP", "YTT", "ASYNC", "BLE", "FBT", "A", "C4", "DTZ", "T10", "DJ", "EM", "EXE", "ISC", "ICN", "G", "INP", "PIE", "T20", "PYI", "PT", "Q", "RSE", "RET", "SLF", "SLOT", "SIM", "TID", "TCH", "INT", "ARG", "PTH", "ERA", "PD", "PGH", "PL", "TRY", "FLY", "NPY", "AIR", "PERF", "FURB", "LOG", "RUF"]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

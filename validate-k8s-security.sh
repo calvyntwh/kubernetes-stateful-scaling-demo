@@ -55,9 +55,9 @@ echo ""
 echo "📋 1. YAML Syntax Validation"
 echo "=============================="
 
-# Validate YAML syntax
+# Validate YAML syntax for Kustomize structure
 yaml_errors=0
-for file in k8s/*.yaml; do
+for file in k8s/base/*.yaml k8s/overlays/*/*.yaml; do
     if [ -f "$file" ]; then
         if python3 -c "import yaml; yaml.safe_load_all(open('$file'))" 2>/dev/null; then
             print_status "PASS" "$(basename "$file") - Valid YAML syntax"
@@ -78,26 +78,27 @@ echo ""
 echo "🛡️  2. Security Context Validation"
 echo "==================================="
 
-# Check deployment security context
-if grep -q "runAsNonRoot: true" k8s/deployment.yaml; then
+# Check deployment security context in Kustomize base
+DEPLOYMENT_FILE="k8s/base/deployment.yaml"
+if grep -q "runAsNonRoot: true" "$DEPLOYMENT_FILE"; then
     print_status "PASS" "Non-root execution enforced"
 else
     print_status "FAIL" "Root execution allowed"
 fi
 
-if grep -q "readOnlyRootFilesystem: true" k8s/deployment.yaml; then
+if grep -q "readOnlyRootFilesystem: true" "$DEPLOYMENT_FILE"; then
     print_status "PASS" "Read-only root filesystem enabled"
 else
     print_status "FAIL" "Writable root filesystem"
 fi
 
-if grep -q "allowPrivilegeEscalation: false" k8s/deployment.yaml; then
+if grep -q "allowPrivilegeEscalation: false" "$DEPLOYMENT_FILE"; then
     print_status "PASS" "Privilege escalation disabled"
 else
     print_status "FAIL" "Privilege escalation allowed"
 fi
 
-if grep -q "drop:" k8s/deployment.yaml && grep -q "ALL" k8s/deployment.yaml; then
+if grep -q "drop:" "$DEPLOYMENT_FILE" && grep -q "ALL" "$DEPLOYMENT_FILE"; then
     print_status "PASS" "All capabilities dropped"
 else
     print_status "FAIL" "Capabilities not properly dropped"
@@ -107,11 +108,12 @@ echo ""
 echo "🌐 3. Network Security Validation"
 echo "=================================="
 
-if [ -f "k8s/network-policy-simple.yaml" ]; then
+NETWORK_POLICY_FILE="k8s/base/network-policy-simple.yaml"
+if [ -f "$NETWORK_POLICY_FILE" ]; then
     print_status "PASS" "Network policy configuration present"
     
-    if grep -q "policyTypes:" k8s/network-policy-simple.yaml; then
-        if grep -q "Ingress" k8s/network-policy-simple.yaml && grep -q "Egress" k8s/network-policy-simple.yaml; then
+    if grep -q "policyTypes:" "$NETWORK_POLICY_FILE"; then
+        if grep -q "Ingress" "$NETWORK_POLICY_FILE" && grep -q "Egress" "$NETWORK_POLICY_FILE"; then
             print_status "PASS" "Both ingress and egress policies defined"
         else
             print_status "WARN" "Only partial network policy coverage"
@@ -125,16 +127,17 @@ echo ""
 echo "🔑 4. RBAC Validation"
 echo "===================="
 
-if [ -f "k8s/rbac.yaml" ]; then
+RBAC_FILE="k8s/base/rbac.yaml"
+if [ -f "$RBAC_FILE" ]; then
     print_status "PASS" "RBAC configuration present"
     
-    if grep -q "ServiceAccount" k8s/rbac.yaml; then
+    if grep -q "ServiceAccount" "$RBAC_FILE"; then
         print_status "PASS" "Dedicated service account configured"
     else
         print_status "WARN" "No dedicated service account found"
     fi
     
-    if grep -q "automountServiceAccountToken: false" k8s/deployment.yaml; then
+    if grep -q "automountServiceAccountToken: false" "$DEPLOYMENT_FILE"; then
         print_status "PASS" "Service account token auto-mount disabled"
     else
         print_status "WARN" "Service account token auto-mount not explicitly disabled"
@@ -147,10 +150,10 @@ echo ""
 echo "💾 5. Resource Management"
 echo "========================"
 
-if grep -q "resources:" k8s/deployment.yaml; then
+if grep -q "resources:" "$DEPLOYMENT_FILE"; then
     print_status "PASS" "Resource configuration present"
     
-    if grep -q "limits:" k8s/deployment.yaml && grep -q "requests:" k8s/deployment.yaml; then
+    if grep -q "limits:" "$DEPLOYMENT_FILE" && grep -q "requests:" "$DEPLOYMENT_FILE"; then
         print_status "PASS" "Both limits and requests configured"
     else
         print_status "WARN" "Incomplete resource configuration"
@@ -163,13 +166,13 @@ echo ""
 echo "🏥 6. Health Monitoring"
 echo "======================"
 
-if grep -q "readinessProbe:" k8s/deployment.yaml; then
+if grep -q "readinessProbe:" "$DEPLOYMENT_FILE"; then
     print_status "PASS" "Readiness probe configured"
 else
     print_status "FAIL" "No readiness probe found"
 fi
 
-if grep -q "livenessProbe:" k8s/deployment.yaml; then
+if grep -q "livenessProbe:" "$DEPLOYMENT_FILE"; then
     print_status "PASS" "Liveness probe configured"
 else
     print_status "FAIL" "No liveness probe found"
@@ -179,10 +182,11 @@ echo ""
 echo "🔐 7. Modern Security Standards"
 echo "==============================="
 
-if [ -f "k8s/namespace.yaml" ] && grep -q "pod-security.kubernetes.io/enforce" k8s/namespace.yaml; then
+NAMESPACE_FILE="k8s/base/namespace.yaml"
+if [ -f "$NAMESPACE_FILE" ] && grep -q "pod-security.kubernetes.io/enforce" "$NAMESPACE_FILE"; then
     print_status "PASS" "Pod Security Standards implemented"
     
-    if grep -q "restricted" k8s/namespace.yaml; then
+    if grep -q "restricted" "$NAMESPACE_FILE"; then
         print_status "PASS" "Restricted security profile enforced"
     else
         print_status "WARN" "Non-restricted security profile"
@@ -202,16 +206,17 @@ echo ""
 echo "🌍 8. Production Readiness"
 echo "=========================="
 
-if [ -f "k8s/ingress.yaml" ]; then
+INGRESS_FILE="k8s/base/ingress.yaml"
+if [ -f "$INGRESS_FILE" ]; then
     print_status "PASS" "Ingress configuration present"
     
-    if grep -q "tls:" k8s/ingress.yaml; then
+    if grep -q "tls:" "$INGRESS_FILE"; then
         print_status "PASS" "TLS termination configured"
     else
         print_status "WARN" "No TLS termination found"
     fi
     
-    if grep -q "cert-manager" k8s/ingress.yaml; then
+    if grep -q "cert-manager" "$INGRESS_FILE"; then
         print_status "PASS" "Automatic certificate management configured"
     else
         print_status "INFO" "Manual certificate management (consider cert-manager)"
@@ -278,7 +283,7 @@ validate_pod_security_standards() {
     echo "📋 Checking Pod Security Standards in manifests"
     
     # Check if namespace.yaml has PSS labels
-    if grep -q "pod-security.kubernetes.io/enforce" k8s/namespace.yaml 2>/dev/null; then
+    if grep -q "pod-security.kubernetes.io/enforce" "$NAMESPACE_FILE" 2>/dev/null; then
         echo "  ✅ Pod Security Standards labels configured in manifests"
         ((score++))
     else
@@ -287,7 +292,7 @@ validate_pod_security_standards() {
     ((total++))
     
     # Check enforcement level
-    if grep -q "pod-security.kubernetes.io/enforce: restricted" k8s/namespace.yaml 2>/dev/null; then
+    if grep -q "pod-security.kubernetes.io/enforce: restricted" "$NAMESPACE_FILE" 2>/dev/null; then
         echo "  ✅ Restricted enforcement level configured"
         ((score++))
     else
@@ -296,7 +301,7 @@ validate_pod_security_standards() {
     ((total++))
     
     # Check for version pinning
-    if grep -q "pod-security.kubernetes.io/enforce-version" k8s/namespace.yaml 2>/dev/null; then
+    if grep -q "pod-security.kubernetes.io/enforce-version" "$NAMESPACE_FILE" 2>/dev/null; then
         echo "  ✅ PSS version pinning configured"
         ((score++))
     else
@@ -305,7 +310,8 @@ validate_pod_security_standards() {
     ((total++))
     
     # Check for modern PSS configuration in security-config.yaml
-    if grep -q "Pod Security Standards" k8s/security-config.yaml 2>/dev/null; then
+    SECURITY_CONFIG_FILE="k8s/base/security-config.yaml"
+    if grep -q "Pod Security Standards" "$SECURITY_CONFIG_FILE" 2>/dev/null; then
         echo "  ✅ Modern PSS configuration found"
         ((score++))
     else
@@ -314,12 +320,14 @@ validate_pod_security_standards() {
     ((total++))
     
     # Check for multiple namespace configurations
-    namespace_count=$(grep -c "kind: Namespace" k8s/namespace.yaml 2>/dev/null || echo "0")
-    if [[ $namespace_count -ge 3 ]]; then
-        echo "  ✅ Multiple environment namespaces configured ($namespace_count total)"
+    namespace_count=$(grep -c "kind: Namespace" "$NAMESPACE_FILE" 2>/dev/null || echo "0")
+    overlay_namespaces=$(find k8s/overlays -name "namespace.yaml" | wc -l)
+    total_namespaces=$((namespace_count + overlay_namespaces))
+    if [[ $total_namespaces -ge 3 ]]; then
+        echo "  ✅ Multiple environment namespaces configured ($total_namespaces total)"
         ((score++))
     else
-        echo "  ⚠️  Limited namespace configurations ($namespace_count total)"
+        echo "  ⚠️  Limited namespace configurations ($total_namespaces total)"
     fi
     ((total++))
     
@@ -402,7 +410,7 @@ validate_modern_security_configs() {
     local total=0
     
     # Check for security context in deployment
-    if grep -q "securityContext:" k8s/deployment.yaml; then
+    if grep -q "securityContext:" "$DEPLOYMENT_FILE"; then
         echo "  ✅ Security context configured in deployment"
         ((score++))
     else
@@ -411,7 +419,7 @@ validate_modern_security_configs() {
     ((total++))
     
     # Check for seccomp profile
-    if grep -q "seccompProfile:" k8s/deployment.yaml; then
+    if grep -q "seccompProfile:" "$DEPLOYMENT_FILE"; then
         echo "  ✅ Seccomp profile configured"
         ((score++))
     else
@@ -420,7 +428,7 @@ validate_modern_security_configs() {
     ((total++))
     
     # Check for capability dropping
-    if grep -q "drop:" k8s/deployment.yaml; then
+    if grep -q "drop:" "$DEPLOYMENT_FILE"; then
         echo "  ✅ Capabilities dropping configured"
         ((score++))
     else
@@ -429,7 +437,7 @@ validate_modern_security_configs() {
     ((total++))
     
     # Check for read-only filesystem
-    if grep -q "readOnlyRootFilesystem: true" k8s/deployment.yaml; then
+    if grep -q "readOnlyRootFilesystem: true" "$DEPLOYMENT_FILE"; then
         echo "  ✅ Read-only root filesystem configured"
         ((score++))
     else
@@ -438,7 +446,7 @@ validate_modern_security_configs() {
     ((total++))
     
     # Check for service account token mounting
-    if grep -q "automountServiceAccountToken: false" k8s/deployment.yaml; then
+    if grep -q "automountServiceAccountToken: false" "$DEPLOYMENT_FILE"; then
         echo "  ✅ Service account token auto-mount disabled"
         ((score++))
     else
