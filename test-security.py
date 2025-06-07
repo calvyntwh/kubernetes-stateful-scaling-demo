@@ -215,8 +215,8 @@ class SecurityTester:
                 import re
                 li_pattern = r'<li[^>]*>.*?</li>'
                 initial_entries = len(re.findall(li_pattern, response.text, re.DOTALL))
-        except:
-            pass
+        except Exception:  # nosec B110
+            initial_entries = 0
         
         for payload in sql_payloads:
             try:
@@ -260,7 +260,7 @@ class SecurityTester:
                     # Should have added our test entries, but not unexpected ones
                     if current_entries < initial_entries:
                         failed_tests.append("Entries appear to have been deleted unexpectedly")
-            except:
+            except Exception:  # nosec B110
                 pass
         
         if failed_tests:

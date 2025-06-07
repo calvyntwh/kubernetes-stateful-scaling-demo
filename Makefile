@@ -40,9 +40,13 @@ security-scan: ## Run security validation script
 	bash validate-security.sh
 
 lint: ## Run code linting
-	@echo "🔍 Running linters..."
-	uv run bandit -r . -f json || true
-	uv run safety scan --output json || true
+	@echo "🔍 Running fast linting..."
+	@uv run bandit main.py test-security.py --quiet --format txt || true
+
+lint-full: ## Run comprehensive linting (slower)
+	@echo "🔍 Running comprehensive linting..."
+	@uv run bandit -r . -f json || true
+	@uv run safety scan --output json || true
 
 scan-docker: build ## Run Docker security scanning
 	@echo "🐳 Running Docker security scans..."

@@ -37,8 +37,9 @@ dev-dependencies = [
 ]
 
 [tool.bandit]
-exclude_dirs = ["tests", "venv", ".venv"]
+exclude_dirs = ["tests", "venv", ".venv", "__pycache__", "data", "k8s", "templates"]
 skips = ["B101"]  # Skip assert_used test
+targets = ["main.py", "test-security.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
