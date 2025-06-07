@@ -59,12 +59,59 @@
             text-align: left; margin-bottom: 2rem;
         }
         .error-box p { font-weight: 700; color: var(--color-error-text); margin: 0; }
+        
+        /* Instance Info Box */
+        .instance-info {
+            background-color: #f0f9ff; border-left: 4px solid #0ea5e9;
+            color: #0c4a6e; padding: 1rem; border-radius: 0.375rem;
+            text-align: left; margin-bottom: 2rem; font-size: 0.875rem;
+        }
+        .instance-info h3 { margin: 0 0 0.5rem; color: #0c4a6e; }
+        .instance-info p { margin: 0.25rem 0; }
+        .instance-id { font-family: monospace; background-color: #e0f2fe; padding: 0.125rem 0.25rem; border-radius: 0.25rem; }
+        
+        /* Warning Box */
+        .warning-box {
+            background-color: #fefce8; border-left: 4px solid #eab308;
+            color: #a16207; padding: 1rem; border-radius: 0.375rem;
+            text-align: left; margin-bottom: 2rem;
+        }
+        .warning-box h3 { margin: 0 0 0.5rem; color: #a16207; }
+        
+        /* Entry metadata */
+        .entry-meta {
+            font-size: 0.75rem; color: #6b7280; font-style: italic;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Stateful Guestbook Demo</h1>
-        <p>Submit a message to the shared guestbook. See what happens when you scale the application to more than one replica and try to submit at the same time!</p>
+        <h1>Stateful Application Scaling Demo</h1>
+        <p>This application demonstrates why stateful applications violate 12-factor principles and cannot scale horizontally. Notice the instance information below and how behavior changes with multiple replicas!</p>
+        
+        <!-- Instance Information -->
+        <div class="instance-info">
+            <h3>🏷️ Current Instance Information</h3>
+            <p><strong>Instance ID:</strong> <span class="instance-id">{{ instance_info.current_instance }}</span></p>
+            <p><strong>Requests Handled:</strong> {{ instance_info.request_count }}</p>
+            <p><strong>Active Sessions:</strong> {{ instance_info.active_sessions }}</p>
+            <p><strong>Your Session ID:</strong> <span class="instance-id">{{ instance_info.session_id[:8] }}...</span></p>
+        </div>
+        
+        <!-- Show scaling issues if multiple instances detected -->
+        {% if other_instances %}
+        <div class="warning-box">
+            <h3>⚠️ Multiple Instances Detected - Scaling Issues Present!</h3>
+            <p><strong>{{ other_instances|length + 1 }} instances are running:</strong></p>
+            <ul>
+                <li>Current: <span class="instance-id">{{ instance_info.current_instance }}</span></li>
+                {% for instance in other_instances %}
+                <li>Other: <span class="instance-id">{{ instance.key.replace('instance_', '') }}</span></li>
+                {% endfor %}
+            </ul>
+            <p><strong>Problems:</strong> Session affinity issues, inconsistent in-memory state, database contention</p>
+        </div>
+        {% endif %}
         
         {% if error %}
         <div class="error-box" role="alert">
@@ -80,14 +127,24 @@
         </div>
 
         <div class="guestbook-list">
-            <h2>Guestbook Entries</h2>
+            <h2>Guestbook Entries (Total: {{ entries|length }})</h2>
             <ul>
                 {% for entry in entries %}
-                <li>{{ entry.message }}</li>
+                <li>
+                    {{ entry.message }}
+                    <div class="entry-meta">
+                        Instance: {{ entry.instance_id[:8] }}... 
+                        {% if entry.session_id %}| Session: {{ entry.session_id[:8] }}...{% endif %}
+                    </div>
+                </li>
                 {% else %}
                 <li>No entries yet. Be the first!</li>
                 {% endfor %}
             </ul>
+        </div>
+        
+        <div style="margin-top: 2rem; text-align: center; font-size: 0.875rem; color: #6b7280;">
+            <p><a href="/status" style="color: #4f46e5;">View Detailed Status & Scaling Issues</a></p>
         </div>
     </div>
 </body>

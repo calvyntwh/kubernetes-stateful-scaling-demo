@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: stateful-app-sa
-  namespace: default
+  namespace: stateful-demo
   labels:
     app: stateful-app
 automountServiceAccountToken: false
@@ -11,7 +11,7 @@ automountServiceAccountToken: false
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  namespace: default
+  namespace: stateful-demo
   name: stateful-app-role
   labels:
     app: stateful-app
@@ -25,13 +25,13 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: stateful-app-rolebinding
-  namespace: default
+  namespace: stateful-demo
   labels:
     app: stateful-app
 subjects:
 - kind: ServiceAccount
   name: stateful-app-sa
-  namespace: default
+  namespace: stateful-demo
 roleRef:
   kind: Role
   name: stateful-app-role

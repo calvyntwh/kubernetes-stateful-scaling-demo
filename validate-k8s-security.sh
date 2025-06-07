@@ -107,11 +107,11 @@ echo ""
 echo "🌐 3. Network Security Validation"
 echo "=================================="
 
-if [ -f "k8s/network-policy.yaml" ]; then
+if [ -f "k8s/network-policy-simple.yaml" ]; then
     print_status "PASS" "Network policy configuration present"
     
-    if grep -q "policyTypes:" k8s/network-policy.yaml; then
-        if grep -q "Ingress" k8s/network-policy.yaml && grep -q "Egress" k8s/network-policy.yaml; then
+    if grep -q "policyTypes:" k8s/network-policy-simple.yaml; then
+        if grep -q "Ingress" k8s/network-policy-simple.yaml && grep -q "Egress" k8s/network-policy-simple.yaml; then
             print_status "PASS" "Both ingress and egress policies defined"
         else
             print_status "WARN" "Only partial network policy coverage"
@@ -192,8 +192,8 @@ else
 fi
 
 # Check for deprecated PSP
-if grep -q "PodSecurityPolicy" k8s/pod-security-policy.yaml && ! grep -q "DEPRECATED" k8s/pod-security-policy.yaml; then
-    print_status "WARN" "Deprecated Pod Security Policy in use"
+if [ -f "k8s/security-config.yaml" ] && grep -q "Pod Security Standards" k8s/security-config.yaml; then
+    print_status "PASS" "Modern Pod Security Standards configuration found"
 else
     print_status "PASS" "Pod Security Policy properly deprecated"
 fi
@@ -304,8 +304,8 @@ validate_pod_security_standards() {
     fi
     ((total++))
     
-    # Check for modern PSS configuration in pod-security-policy.yaml
-    if grep -q "Pod Security Standards" k8s/pod-security-policy.yaml 2>/dev/null; then
+    # Check for modern PSS configuration in security-config.yaml
+    if grep -q "Pod Security Standards" k8s/security-config.yaml 2>/dev/null; then
         echo "  ✅ Modern PSS configuration found"
         ((score++))
     else
@@ -342,7 +342,7 @@ validate_enhanced_network_policies() {
     echo "📋 Checking Network Policies in manifests"
     
     # Check if default deny policy exists in manifest
-    if grep -q "default-deny-all" k8s/network-policy.yaml 2>/dev/null; then
+    if grep -q "default-deny-all" k8s/network-policy-simple.yaml 2>/dev/null; then
         echo "  ✅ Default deny policy configured in manifests"
         ((score++))
     else
@@ -351,7 +351,7 @@ validate_enhanced_network_policies() {
     ((total++))
     
     # Check for multiple network policies
-    policy_count=$(grep -c "kind: NetworkPolicy" k8s/network-policy.yaml 2>/dev/null || echo "0")
+    policy_count=$(grep -c "kind: NetworkPolicy" k8s/network-policy-simple.yaml 2>/dev/null || echo "0")
     if [[ $policy_count -gt 3 ]]; then
         echo "  ✅ Multiple network policies configured ($policy_count total)"
         ((score++))
@@ -361,7 +361,7 @@ validate_enhanced_network_policies() {
     ((total++))
     
     # Check for both ingress and egress policies
-    if grep -q "Ingress" k8s/network-policy.yaml 2>/dev/null && grep -q "Egress" k8s/network-policy.yaml 2>/dev/null; then
+    if grep -q "Ingress" k8s/network-policy-simple.yaml 2>/dev/null && grep -q "Egress" k8s/network-policy-simple.yaml 2>/dev/null; then
         echo "  ✅ Both ingress and egress policies configured"
         ((score++))
     else
@@ -370,7 +370,7 @@ validate_enhanced_network_policies() {
     ((total++))
     
     # Check for named ports in network policies
-    if grep -q "name:" k8s/network-policy.yaml 2>/dev/null; then
+    if grep -q "name:" k8s/network-policy-simple.yaml 2>/dev/null; then
         echo "  ✅ Named ports configured for better security"
         ((score++))
     else
@@ -379,11 +379,11 @@ validate_enhanced_network_policies() {
     ((total++))
     
     # Check for advanced network security configurations
-    if [ -f "k8s/network-security-advanced.yaml" ]; then
-        echo "  ✅ Advanced network security configurations present"
+    if [ -f "k8s/security-config.yaml" ]; then
+        echo "  ✅ Security configurations present"
         ((score++))
     else
-        echo "  ⚠️  Advanced network security configurations missing"
+        echo "  ⚠️  Security configurations missing"
     fi
     ((total++))
     

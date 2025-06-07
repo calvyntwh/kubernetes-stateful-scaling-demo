@@ -1,13 +1,17 @@
 # Security Policy
 
+## Educational Project Notice
+
+**⚠️ Important**: This is an educational demonstration project designed to showcase stateful scaling limitations. While it implements security best practices, it should NOT be used as a template for production applications.
+
 ## Supported Versions
 
-This project follows semantic versioning. Security updates are provided for the following versions:
+This is an educational demonstration project. Security updates are provided for:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-| < 1.0   | :x:                |
+| main    | :white_check_mark: |
+| < main  | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -27,16 +31,18 @@ Security vulnerabilities should be reported privately to avoid exposing users to
 
 ### 3. Alternative Contact Methods
 
-If GitHub Security Advisories are not available, you can:
-- Email: [Add your security contact email here]
-- PGP Key: [Add PGP key if you use encrypted communication]
+For security vulnerabilities in this educational project:
+- Create a private issue in this repository
+- Contact through GitHub discussions for security topics
 
 ## Security Response Timeline
 
-- **Initial Response**: Within 48 hours of report
-- **Assessment**: Within 7 days of report
-- **Fix Development**: Varies based on complexity
-- **Release**: Critical vulnerabilities within 30 days, others within 90 days
+For this educational project:
+
+- **Initial Response**: Within 7 days of report
+- **Assessment**: Within 14 days of report  
+- **Fix Development**: Varies based on complexity and educational value
+- **Release**: Security fixes will be prioritized for learning purposes
 
 ## Security Measures in Place
 
@@ -44,7 +50,7 @@ If GitHub Security Advisories are not available, you can:
 
 - **Input Validation**: All user inputs are validated and sanitized
 - **XSS Protection**: HTML escaping and Content Security Policy headers
-- **SQL Injection Prevention**: Parameterized queries using SQLAlchemy ORM
+- **SQL Injection Prevention**: Parameterized queries using SQLModel ORM
 - **Security Headers**: 
   - X-Content-Type-Options: nosniff
   - X-Frame-Options: DENY
@@ -77,8 +83,7 @@ If GitHub Security Advisories are not available, you can:
   - Safety for dependency vulnerabilities
   - Hadolint for Dockerfile best practices
 - **Security Testing**: Automated security test suite
-- **Signed Images**: Container images are signed and verified
-- **Branch Protection**: Main branch requires PR reviews and status checks
+- **Branch Protection**: Standard GitHub repository protections
 
 ## Security Testing
 
@@ -157,5 +162,5 @@ We appreciate the security community's efforts in keeping this project secure. R
 
 ---
 
-**Last Updated**: 2025-06-07
-**Security Contact**: [Add your contact information]
+**Last Updated**: 2025-06-07  
+**Project Type**: Educational Demonstration

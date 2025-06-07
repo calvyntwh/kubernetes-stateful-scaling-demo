@@ -4,7 +4,7 @@
 IMAGE_NAME ?= stateful-guestbook
 IMAGE_TAG ?= latest
 REGISTRY ?= your-registry
-NAMESPACE ?= default
+NAMESPACE ?= stateful-demo
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -59,13 +59,19 @@ k8s-deploy: ## Deploy to Kubernetes
 	@echo "☸️  Deploying to Kubernetes..."
 	kubectl apply -f k8s/namespace.yaml
 	kubectl apply -f k8s/security-config.yaml --namespace=$(NAMESPACE)
-	kubectl apply -f k8s/ --namespace=$(NAMESPACE)
-	kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=$(NAMESPACE) --timeout=60s
+	kubectl apply -f k8s/persistent-volume.yaml
+	kubectl apply -f k8s/persistent-volume-claim.yaml --namespace=$(NAMESPACE)
+	kubectl apply -f k8s/rbac.yaml --namespace=$(NAMESPACE)
+	kubectl apply -f k8s/network-policy-simple.yaml --namespace=$(NAMESPACE)
+	kubectl apply -f k8s/deployment.yaml --namespace=$(NAMESPACE)
+	kubectl apply -f k8s/service.yaml --namespace=$(NAMESPACE)
+	kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=$(NAMESPACE) --timeout=120s
 	@echo "✅ Deployed to Kubernetes with enhanced security"
 
 k8s-clean: ## Clean up Kubernetes resources
 	@echo "🧹 Cleaning up Kubernetes resources..."
-	kubectl delete -f k8s/ --namespace=$(NAMESPACE) --ignore-not-found=true
+	kubectl delete deployment,service,pvc,configmap,secret,networkpolicy,serviceaccount,role,rolebinding --selector=app=stateful-app --namespace=$(NAMESPACE) --ignore-not-found=true
+	kubectl delete namespace $(NAMESPACE) --ignore-not-found=true
 	@echo "✅ Kubernetes resources cleaned up"
 
 k8s-scale: ## Scale deployment (usage: make k8s-scale REPLICAS=3)

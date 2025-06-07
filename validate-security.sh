@@ -30,8 +30,8 @@ required_files=(
     "SECURITY.md"
     "requirements.txt"
     "k8s/deployment.yaml"
-    "k8s/network-policy.yaml"
-    "k8s/pod-security-policy.yaml"
+    "k8s/network-policy-simple.yaml"
+    "k8s/security-config.yaml"
     ".github/workflows/security-scan.yml"
 )
 
