@@ -1,0 +1,40 @@
+# Demo Environment Overlay
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: demo-overlay
+
+# Reference the base configuration
+resources:
+  - ../../base
+  - namespace.yaml
+
+# Environment-specific namespace
+namespace: stateful-demo
+
+# Environment labels
+commonLabels:
+  environment: demo
+  tier: development
+
+# Demo-specific patches
+patches:
+  - path: replica-count.yaml
+    target:
+      kind: Deployment
+      name: stateful-app-deployment
+  - path: storage-config.yaml
+    target:
+      kind: PersistentVolumeClaim
+      name: stateful-app-pvc
+
+# Demo-specific ConfigMap
+configMapGenerator:
+  - name: demo-instructions
+    literals:
+      - demo-command=kubectl apply -k k8s/overlays/demo
+      - scale-command=kubectl scale deployment stateful-app-deployment --replicas=3 -n stateful-demo
+      - test-url=http://localhost:30007
+    options:
+      disableNameSuffixHash: true

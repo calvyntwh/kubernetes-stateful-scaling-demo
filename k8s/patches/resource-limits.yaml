@@ -1,0 +1,17 @@
+# Resource limits patch for demo environment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stateful-app-deployment
+spec:
+  template:
+    spec:
+      containers:
+      - name: stateful-app
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"

@@ -1,0 +1,7 @@
+# Production replica configuration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stateful-app-deployment
+spec:
+  replicas: 1  # Still 1 replica to demonstrate scaling issues

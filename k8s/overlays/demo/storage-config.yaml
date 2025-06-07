@@ -1,0 +1,9 @@
+# Demo storage configuration
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stateful-app-pvc
+spec:
+  resources:
+    requests:
+      storage: 1Gi  # Small storage for demo

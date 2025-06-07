@@ -1,0 +1,49 @@
+# Staging Environment Overlay
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: staging-overlay
+
+# Reference the base configuration
+resources:
+  - ../../base
+  - namespace.yaml
+
+# Environment-specific namespace
+namespace: stateful-staging
+
+# Environment labels
+commonLabels:
+  environment: staging
+  tier: pre-production
+
+# Staging-specific patches
+patches:
+  - path: replica-count.yaml
+    target:
+      kind: Deployment
+      name: stateful-app-deployment
+  - path: resource-limits.yaml
+    target:
+      kind: Deployment
+      name: stateful-app-deployment
+  - path: ingress-config.yaml
+    target:
+      kind: Ingress
+      name: stateful-app-ingress
+
+# Staging-specific image tag
+images:
+  - name: stateful-guestbook
+    newTag: staging
+
+# Staging ConfigMap
+configMapGenerator:
+  - name: staging-config
+    literals:
+      - environment=staging
+      - log-level=DEBUG
+      - monitoring-enabled=true
+    options:
+      disableNameSuffixHash: true

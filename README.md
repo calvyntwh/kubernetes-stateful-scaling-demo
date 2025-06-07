@@ -29,14 +29,33 @@ This project demonstrates the fundamental scaling limitations of stateful applic
 - Kubernetes cluster (minikube, Docker Desktop, etc.)
 - kubectl configured
 - Make utility
+- **Kustomize** (built into kubectl v1.14+)
 
-### Deploy to Kubernetes
+### Deploy with Kustomize (Recommended)
 ```bash
-# Build and deploy
+# Deploy to demo environment
 make k8s-deploy
 
+# Deploy to staging environment  
+make k8s-deploy-staging
+
+# Deploy to production environment
+make k8s-deploy-production
+
+# Scale to see the problem (demo environment)
+make k8s-scale-demo REPLICAS=3
+
+# Check status across all environments
+make k8s-status-all
+```
+
+### Deploy with Legacy YAML (Alternative)
+```bash
+# Build and deploy using legacy method
+make k8s-deploy-legacy
+
 # Scale to see the problem
-make k8s-scale REPLICAS=3
+make k8s-scale-legacy REPLICAS=3
 
 # Test the scaling failure
 kubectl get pods -l app=stateful-app
@@ -134,16 +153,38 @@ kubernetes-stateful-scaling-demo/
 ├── Dockerfile            # Container build
 ├── docker-compose.yml    # Local development
 ├── Makefile             # Build automation
-├── k8s/                 # Kubernetes manifests
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   ├── persistent-volume-claim.yaml
-│   ├── persistent-volume.yaml
-│   ├── network-policy-simple.yaml
-│   ├── rbac.yaml
-│   ├── security-config.yaml
-│   ├── namespace.yaml
-│   └── ingress.yaml
+├── k8s/                 # Kubernetes manifests with Kustomize
+│   ├── base/            # Base Kubernetes configurations
+│   │   ├── deployment.yaml
+│   │   ├── service.yaml
+│   │   ├── persistent-volume-claim.yaml
+│   │   ├── persistent-volume.yaml
+│   │   ├── network-policy-simple.yaml
+│   │   ├── rbac.yaml
+│   │   ├── security-config.yaml
+│   │   ├── ingress.yaml
+│   │   └── kustomization.yaml
+│   ├── overlays/        # Environment-specific configurations
+│   │   ├── demo/        # Demo environment
+│   │   │   ├── kustomization.yaml
+│   │   │   ├── namespace.yaml
+│   │   │   ├── replica-count.yaml
+│   │   │   └── storage-config.yaml
+│   │   ├── staging/     # Staging environment
+│   │   │   ├── kustomization.yaml
+│   │   │   ├── namespace.yaml
+│   │   │   ├── replica-count.yaml
+│   │   │   ├── resource-limits.yaml
+│   │   │   └── ingress-config.yaml
+│   │   └── production/  # Production environment
+│   │       ├── kustomization.yaml
+│   │       ├── namespace.yaml
+│   │       ├── replica-count.yaml
+│   │       ├── resource-limits.yaml
+│   │       ├── security-hardening.yaml
+│   │       └── storage-config.yaml
+│   └── patches/         # Reusable patches
+│       └── resource-limits.yaml
 ├── templates/           # HTML templates
 │   └── index.html
 ├── test-security.py     # Security validation
@@ -184,26 +225,42 @@ This demo proves that **stateful applications with shared databases cannot be ef
 ### Makefile Commands
 
 ```bash
-make help           # Show all available commands
-make build          # Build Docker image  
-make run            # Run application with Docker
-make stop           # Stop running application
-make test           # Run basic tests
-make security-test  # Run security tests
-make security-scan  # Complete security validation
-make scan-docker    # Docker security scanning
-make lint           # Fast security linting with bandit
-make lint-full      # Comprehensive linting (slower)
-make k8s-deploy     # Deploy to Kubernetes
-make k8s-scale      # Scale deployment (REPLICAS=N)
-make k8s-clean      # Clean up Kubernetes resources
-make k8s-status     # Show deployment status
-make k8s-logs       # View application logs
-make demo           # Run the scaling failure demo
-make health-check   # Check application health and security headers
-make push           # Build and push Docker image to registry
-make clean          # Clean up local resources
-make all            # Build, scan, and test everything
+make help                 # Show all available commands
+make build                # Build Docker image  
+make run                  # Run application with Docker
+make stop                 # Stop running application
+make test                 # Run basic tests
+make security-test        # Run security tests
+make security-scan        # Complete security validation
+make scan-docker          # Docker security scanning
+make lint                 # Fast security linting with bandit
+make lint-full            # Comprehensive linting (slower)
+
+# Kustomize Commands (Recommended)
+make k8s-deploy           # Deploy to demo environment
+make k8s-deploy-staging   # Deploy to staging environment  
+make k8s-deploy-production # Deploy to production environment
+make k8s-validate         # Validate Kustomize configurations
+make k8s-diff             # Show differences between environments
+make k8s-preview          # Preview what will be deployed
+make k8s-status-all       # Show status of all environments
+make k8s-scale-demo       # Scale demo deployment (REPLICAS=N)
+make k8s-clean            # Clean up all environments
+make k8s-clean-demo       # Clean up demo environment only
+
+# Legacy Commands
+make k8s-deploy-legacy    # Deploy using legacy YAML files
+make k8s-scale-legacy     # Scale deployment (legacy method)
+make k8s-clean-legacy     # Clean up using legacy method
+
+# Other Commands
+make k8s-status           # Show deployment status
+make k8s-logs             # View application logs
+make demo                 # Run the scaling failure demo
+make health-check         # Check application health and security headers
+make push                 # Build and push Docker image to registry
+make clean                # Clean up local resources
+make all                  # Build, scan, and test everything
 ```
 
 ## 📊 Security Validation Results

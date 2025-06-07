@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stateful-demo
+  labels:
+    # Pod Security Standards (PSS) - Modern approach replacing PSP
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted 
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn-version: latest
+    # Application labels
+    app.kubernetes.io/name: stateful-guestbook
+    app.kubernetes.io/component: namespace
+    app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: kubectl
+    environment: demo
+  annotations:
+    # Security documentation
+    security.kubernetes.io/policy: "This namespace enforces the restricted Pod Security Standard"
+    security.kubernetes.io/rationale: "Development environment with maximum security controls"

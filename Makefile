@@ -55,8 +55,14 @@ scan-docker: build ## Run Docker security scanning
 	@command -v hadolint >/dev/null 2>&1 && hadolint Dockerfile || echo "⚠️  hadolint not installed"
 	@echo "✅ Docker security scan complete"
 
-k8s-deploy: ## Deploy to Kubernetes
-	@echo "☸️  Deploying to Kubernetes..."
+k8s-deploy: ## Deploy to Kubernetes (default environment)
+	@echo "☸️  Deploying to Kubernetes with Kustomize..."
+	kubectl apply -k k8s/overlays/demo
+	kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=stateful-demo --timeout=120s
+	@echo "✅ Deployed to Kubernetes with enhanced security"
+
+k8s-deploy-legacy: ## Deploy using legacy YAML files
+	@echo "☸️  Deploying to Kubernetes (legacy method)..."
 	kubectl apply -f k8s/namespace.yaml
 	kubectl apply -f k8s/security-config.yaml --namespace=$(NAMESPACE)
 	kubectl apply -f k8s/persistent-volume.yaml
@@ -68,13 +74,48 @@ k8s-deploy: ## Deploy to Kubernetes
 	kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=$(NAMESPACE) --timeout=120s
 	@echo "✅ Deployed to Kubernetes with enhanced security"
 
-k8s-clean: ## Clean up Kubernetes resources
+k8s-deploy-staging: ## Deploy to staging environment
+	@echo "🎭 Deploying to staging environment..."
+	kubectl apply -k k8s/overlays/staging
+	kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=stateful-staging --timeout=120s
+	@echo "✅ Deployed to staging environment"
+
+k8s-deploy-production: ## Deploy to production environment
+	@echo "🚀 Deploying to production environment..."
+	kubectl apply -k k8s/overlays/production
+	kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=stateful-production --timeout=120s
+	@echo "✅ Deployed to production environment"
+
+k8s-clean: ## Clean up Kubernetes resources (all environments)
+	@echo "🧹 Cleaning up Kubernetes resources..."
+	kubectl delete -k k8s/overlays/demo --ignore-not-found=true
+	kubectl delete -k k8s/overlays/staging --ignore-not-found=true
+	kubectl delete -k k8s/overlays/production --ignore-not-found=true
+	kubectl delete namespace stateful-demo stateful-staging stateful-production --ignore-not-found=true
+	@echo "✅ Kubernetes resources cleaned up"
+
+k8s-clean-demo: ## Clean up demo environment only
+	@echo "🧹 Cleaning up demo environment..."
+	kubectl delete -k k8s/overlays/demo --ignore-not-found=true
+	@echo "✅ Demo environment cleaned up"
+
+k8s-clean-legacy: ## Clean up Kubernetes resources (legacy method)
 	@echo "🧹 Cleaning up Kubernetes resources..."
 	kubectl delete deployment,service,pvc,configmap,secret,networkpolicy,serviceaccount,role,rolebinding --selector=app=stateful-app --namespace=$(NAMESPACE) --ignore-not-found=true
 	kubectl delete namespace $(NAMESPACE) --ignore-not-found=true
 	@echo "✅ Kubernetes resources cleaned up"
 
-k8s-scale: ## Scale deployment (usage: make k8s-scale REPLICAS=3)
+k8s-scale: ## Scale deployment (usage: make k8s-scale REPLICAS=3 ENV=demo)
+	@echo "📈 Scaling deployment to $(REPLICAS) replicas in $(ENV) environment..."
+	kubectl scale deployment stateful-app-deployment --replicas=$(REPLICAS) --namespace=stateful-$(ENV)
+	@echo "✅ Scaled to $(REPLICAS) replicas in $(ENV) environment"
+
+k8s-scale-demo: ## Scale demo deployment (usage: make k8s-scale-demo REPLICAS=3)
+	@echo "📈 Scaling demo deployment to $(REPLICAS) replicas..."
+	kubectl scale deployment stateful-app-deployment --replicas=$(REPLICAS) --namespace=stateful-demo
+	@echo "✅ Scaled demo to $(REPLICAS) replicas"
+
+k8s-scale-legacy: ## Scale deployment (legacy method)
 	@echo "📈 Scaling deployment to $(REPLICAS) replicas..."
 	kubectl scale deployment stateful-app-deployment --replicas=$(REPLICAS) --namespace=$(NAMESPACE)
 	@echo "✅ Scaled to $(REPLICAS) replicas"
@@ -153,3 +194,38 @@ k8s-compliance-report: ## Generate compliance report
 	@echo "RBAC: IMPLEMENTED" >> k8s-compliance-report.txt
 
 k8s-benchmark: k8s-security-check k8s-compliance-report ## Run complete security benchmark
+
+k8s-diff: ## Show differences between environments
+	@echo "🔍 Showing differences between environments..."
+	@echo "Demo environment:"
+	kubectl kustomize k8s/overlays/demo | head -20
+	@echo "\nStaging environment:"
+	kubectl kustomize k8s/overlays/staging | head -20
+	@echo "\nProduction environment:"
+	kubectl kustomize k8s/overlays/production | head -20
+
+k8s-validate: ## Validate Kustomize configurations
+	@echo "✅ Validating Kustomize configurations..."
+	kubectl kustomize k8s/overlays/demo > /dev/null && echo "✓ Demo overlay valid"
+	kubectl kustomize k8s/overlays/staging > /dev/null && echo "✓ Staging overlay valid"
+	kubectl kustomize k8s/overlays/production > /dev/null && echo "✓ Production overlay valid"
+	kubectl kustomize k8s/base > /dev/null && echo "✓ Base configuration valid"
+	@echo "✅ All Kustomize configurations are valid"
+
+k8s-preview: ## Preview what will be deployed to each environment
+	@echo "👁️  Previewing deployments..."
+	@echo "=== DEMO ENVIRONMENT ==="
+	kubectl kustomize k8s/overlays/demo
+	@echo "\n=== STAGING ENVIRONMENT ==="
+	kubectl kustomize k8s/overlays/staging
+	@echo "\n=== PRODUCTION ENVIRONMENT ==="
+	kubectl kustomize k8s/overlays/production
+
+k8s-status-all: ## Show status of all environments
+	@echo "📊 Status of all environments:"
+	@echo "\n=== DEMO ENVIRONMENT ==="
+	kubectl get pods,svc,pvc -l app=stateful-app --namespace=stateful-demo || echo "Demo environment not deployed"
+	@echo "\n=== STAGING ENVIRONMENT ==="
+	kubectl get pods,svc,pvc -l app=stateful-app --namespace=stateful-staging || echo "Staging environment not deployed"
+	@echo "\n=== PRODUCTION ENVIRONMENT ==="
+	kubectl get pods,svc,pvc -l app=stateful-app --namespace=stateful-production || echo "Production environment not deployed"
