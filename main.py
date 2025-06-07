@@ -14,14 +14,11 @@ import logging
 import os
 import re
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-# --- Input validation models ---
 class MessageCreate(BaseModel):
     message: str = PydanticField(..., min_length=1, max_length=500)
     
@@ -29,16 +26,14 @@ class MessageCreate(BaseModel):
     def sanitize_message(cls, v):
         if not v or not v.strip():
             raise ValueError('Message cannot be empty')
-        # More comprehensive XSS protection
+        
         # Remove script tags and other dangerous elements
         v = re.sub(r'<script[^>]*>.*?</script>', '', v, flags=re.IGNORECASE | re.DOTALL)
         v = re.sub(r'<[^>]*>', '', v)  # Remove all HTML tags
-        v = html.escape(v.strip())  # Escape remaining characters
+        v = html.escape(v.strip())
         if not v:
             raise ValueError('Message cannot be empty after sanitization')
         return v
-
-# --- Security Middleware ---
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)

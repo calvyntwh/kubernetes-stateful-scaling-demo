@@ -3,41 +3,64 @@ kind: Namespace
 metadata:
   name: stateful-demo
   labels:
-    # Pod Security Standards (replaces deprecated PSP)
+    # Pod Security Standards (PSS) - Modern approach replacing PSP
     pod-security.kubernetes.io/enforce: restricted
     pod-security.kubernetes.io/audit: restricted 
     pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn-version: latest
     # Application labels
     app.kubernetes.io/name: stateful-guestbook
     app.kubernetes.io/component: namespace
     app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: kubectl
+  annotations:
+    # Security documentation
+    security.kubernetes.io/policy: "This namespace enforces the restricted Pod Security Standard"
+    security.kubernetes.io/rationale: "Development environment with maximum security controls"
 ---
 apiVersion: v1
 kind: Namespace  
 metadata:
   name: stateful-staging
   labels:
-    # Pod Security Standards for staging
+    # Pod Security Standards for staging - balanced security
     pod-security.kubernetes.io/enforce: restricted
     pod-security.kubernetes.io/audit: restricted
     pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn-version: latest
     # Environment labels
     app.kubernetes.io/name: stateful-guestbook
     app.kubernetes.io/component: namespace
     app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: kubectl
     environment: staging
+  annotations:
+    security.kubernetes.io/policy: "Staging environment with restricted Pod Security Standard"
+    security.kubernetes.io/rationale: "Pre-production environment matching production security controls"
 ---
 apiVersion: v1
 kind: Namespace
 metadata:
   name: stateful-production
   labels:
-    # Pod Security Standards for production
+    # Pod Security Standards for production - maximum security
     pod-security.kubernetes.io/enforce: restricted
     pod-security.kubernetes.io/audit: restricted
     pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn-version: latest
     # Environment labels
     app.kubernetes.io/name: stateful-guestbook
     app.kubernetes.io/component: namespace
     app.kubernetes.io/version: "1.0"
+    app.kubernetes.io/managed-by: kubectl
     environment: production
+  annotations:
+    security.kubernetes.io/policy: "Production environment with restricted Pod Security Standard"
+    security.kubernetes.io/rationale: "Production workloads require maximum security controls"
+    compliance.kubernetes.io/standards: "CIS-1.6,NIST-800-190"

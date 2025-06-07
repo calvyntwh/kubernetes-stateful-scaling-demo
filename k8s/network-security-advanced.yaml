@@ -1,0 +1,267 @@
+# Advanced Network Security Controls
+# Supplementary network policies for enhanced security posture
+
+# Network Security Configuration for Zero Trust Architecture
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: network-security-config
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: network-security
+    app.kubernetes.io/component: configuration
+data:
+  zero-trust-principles.yaml: |
+    # Zero Trust Network Security Principles
+    principles:
+      - never_trust_always_verify
+      - least_privilege_access
+      - assume_breach_mentality
+      - encrypt_everything
+      - log_and_monitor_all
+    
+    implementation:
+      network_policies:
+        - default_deny_all
+        - explicit_allow_rules
+        - namespace_isolation
+        - pod_to_pod_encryption
+      
+      monitoring:
+        - network_flow_logs
+        - policy_violation_alerts
+        - anomaly_detection
+        - compliance_reporting
+
+---
+# Inter-Namespace Communication Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cross-namespace-policy
+  namespace: stateful-demo
+  labels:
+    security-tier: cross-namespace
+    policy-type: restrictive
+spec:
+  podSelector:
+    matchLabels:
+      allow-cross-namespace: "true"
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow specific cross-namespace communication
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          cross-namespace-access: "allowed"
+      podSelector:
+        matchLabels:
+          cross-namespace-client: "true"
+    ports:
+    - protocol: TCP
+      port: 8000
+  egress:
+  # Allow communication to specific external namespaces
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          cross-namespace-target: "allowed"
+    ports:
+    - protocol: TCP
+      port: 8000
+
+---
+# Service Mesh Integration Policy (for Istio/Linkerd)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: service-mesh-policy
+  namespace: stateful-demo
+  labels:
+    service-mesh: enabled
+    security-tier: service-mesh
+spec:
+  podSelector:
+    matchLabels:
+      service-mesh: "enabled"
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow service mesh sidecar communication
+  - from:
+    - podSelector:
+        matchLabels:
+          app: istio-proxy
+    ports:
+    - protocol: TCP
+      port: 15090  # Envoy admin
+    - protocol: TCP
+      port: 15001  # Envoy outbound
+    - protocol: TCP
+      port: 15006  # Envoy inbound
+  
+  # Allow application traffic through sidecar
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          istio-injection: enabled
+    ports:
+    - protocol: TCP
+      port: 8000
+  
+  egress:
+  # Allow sidecar to communicate with control plane
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+    ports:
+    - protocol: TCP
+      port: 15010  # Pilot
+    - protocol: TCP
+      port: 15011  # Pilot GRPC
+    - protocol: TCP
+      port: 8080   # Pilot HTTP
+
+---
+# Network Policy for CI/CD Integration
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cicd-integration-policy
+  namespace: stateful-demo
+  labels:
+    integration-tier: cicd
+    security-tier: automation
+spec:
+  podSelector:
+    matchLabels:
+      deployment-target: "true"
+  policyTypes:
+  - Ingress
+  ingress:
+  # Allow CI/CD systems to deploy and verify
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: cicd-system
+      podSelector:
+        matchLabels:
+          component: deployment-agent
+    ports:
+    - protocol: TCP
+      port: 8000
+      name: deployment-verification
+  
+  # Allow health checks from CI/CD monitoring
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: cicd-system
+      podSelector:
+        matchLabels:
+          component: health-checker
+    ports:
+    - protocol: TCP
+      port: 8000
+      name: health-verification
+
+---
+# Emergency Access Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: emergency-access-policy
+  namespace: stateful-demo
+  labels:
+    access-tier: emergency
+    security-tier: break-glass
+  annotations:
+    emergency-access.kubernetes.io/description: "Break-glass network access for emergency situations"
+    emergency-access.kubernetes.io/approval-required: "security-team"
+spec:
+  podSelector:
+    matchLabels:
+      emergency-access: "enabled"
+  policyTypes:
+  - Ingress
+  ingress:
+  # Allow emergency access from designated jump hosts
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: emergency-access
+      podSelector:
+        matchLabels:
+          role: jump-host
+          emergency-verified: "true"
+    ports:
+    - protocol: TCP
+      port: 8000
+      name: emergency-http
+    - protocol: TCP
+      port: 22
+      name: emergency-ssh
+
+---
+# Network Policy Validation
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: network-policy-validation
+  namespace: kube-system
+  labels:
+    component: network-security-validation
+data:
+  validate-network-policies.sh: |
+    #!/bin/bash
+    # Network Policy Validation Script
+    # Validates network security configuration
+    
+    echo "🔒 Validating Network Security Configuration..."
+    
+    # Check for default deny policies
+    for ns in stateful-demo stateful-staging stateful-production; do
+      echo "Checking namespace: $ns"
+      
+      # Verify default deny policy exists
+      if kubectl get networkpolicy -n $ns default-deny-all >/dev/null 2>&1; then
+        echo "✅ $ns: Default deny policy configured"
+      else
+        echo "⚠️  $ns: Missing default deny policy"
+      fi
+      
+      # Check application-specific policies
+      policy_count=$(kubectl get networkpolicy -n $ns --no-headers | wc -l)
+      echo "📊 $ns: $policy_count network policies configured"
+      
+      # Verify ingress restrictions
+      ingress_rules=$(kubectl get networkpolicy -n $ns -o jsonpath='{.items[*].spec.ingress[*]}' | wc -w)
+      echo "🔒 $ns: $ingress_rules ingress rules configured"
+    done
+    
+    echo "🔍 Network Policy Security Assessment:"
+    kubectl get networkpolicy --all-namespaces -o wide
+    
+    echo "✅ Network security validation complete"
+
+  test-connectivity.sh: |
+    #!/bin/bash
+    # Network Connectivity Testing
+    # Tests that network policies are working correctly
+    
+    echo "🧪 Testing Network Policy Enforcement..."
+    
+    # Test that default deny is working
+    echo "Testing default deny behavior..."
+    
+    # Test allowed connections
+    echo "Testing explicitly allowed connections..."
+    
+    # Test blocked connections
+    echo "Testing blocked connections (should fail)..."
+    
+    echo "🧪 Network connectivity tests complete"

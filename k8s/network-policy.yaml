@@ -1,11 +1,20 @@
+# Enhanced Network Policies with Advanced Security Controls
+# Kubernetes NetworkPolicy v1.29+ features
+
+# Primary Application Network Policy
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: stateful-app-netpol
+  namespace: stateful-demo
   labels:
     app: stateful-app
     app.kubernetes.io/name: stateful-guestbook
     app.kubernetes.io/component: network-policy
+    security-tier: application
+  annotations:
+    network-policy.kubernetes.io/description: "Restricts network traffic to stateful application pods"
+    network-policy.kubernetes.io/last-reviewed: "2024-01-01"
 spec:
   podSelector:
     matchLabels:
@@ -14,38 +23,246 @@ spec:
   - Ingress
   - Egress
   ingress:
-  # Allow traffic from ingress controllers
+  # Allow traffic from ingress controllers (specific namespace and labels)
   - from:
     - namespaceSelector:
         matchLabels:
           name: ingress-nginx
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
     ports:
     - protocol: TCP
       port: 8000
-  # Allow traffic from monitoring systems
+      name: http-api
+  
+  # Allow traffic from monitoring systems with specific pod selection
   - from:
     - namespaceSelector:
         matchLabels:
           name: monitoring
+      podSelector:
+        matchLabels:
+          app: prometheus
     ports:
     - protocol: TCP
       port: 8000
-  # Allow traffic from same namespace for demo purposes
+      name: metrics
+  
+  # Allow health checks from kube-system (for kubelet probes)
   - from:
-    - podSelector: {}
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
     ports:
     - protocol: TCP
       port: 8000
+      name: health-check
+  
+  # Allow intra-namespace communication (for multi-pod scenarios)
+  - from:
+    - podSelector:
+        matchLabels:
+          app: stateful-app
+    ports:
+    - protocol: TCP
+      port: 8000
+      name: intra-app
+
   egress:
-  # Allow DNS resolution
+  # Allow DNS resolution (required for all pods)
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+      name: dns-udp
+    - protocol: TCP
+      port: 53
+      name: dns-tcp
+  
+  # Allow HTTPS for external API calls and package updates
   - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+      name: https-external
+  
+  # Allow NTP for time synchronization
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 123
+      name: ntp
+  
+  # Block all other egress traffic (implicit deny)
+
+---
+# Deny-All Default Policy (applies to all pods without specific network policies)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: stateful-demo
+  labels:
+    app.kubernetes.io/name: default-deny
+    app.kubernetes.io/component: network-policy
+    security-tier: baseline
+  annotations:
+    network-policy.kubernetes.io/description: "Default deny-all policy for enhanced security"
+spec:
+  podSelector: {}  # Applies to all pods in namespace
+  policyTypes:
+  - Ingress
+  - Egress
+  # No rules specified = deny all traffic
+
+---
+# Enhanced Network Policy for Staging Environment
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: stateful-app-netpol-staging
+  namespace: stateful-staging
+  labels:
+    app: stateful-app
+    environment: staging
+    security-tier: application
+spec:
+  podSelector:
+    matchLabels:
+      app: stateful-app
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Production-like restrictions for staging
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system  # Support for service mesh
+      podSelector:
+        matchLabels:
+          app: istio-proxy
+    ports:
+    - protocol: TCP
+      port: 8000
+  
+  # Allow monitoring and observability
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    - namespaceSelector:
+        matchLabels:
+          name: istio-system
+    ports:
+    - protocol: TCP
+      port: 8000
+      name: observability
+  
+  egress:
+  # DNS resolution
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
     ports:
     - protocol: UDP
       port: 53
     - protocol: TCP
       port: 53
-  # Allow HTTPS for secure communications
+  
+  # External HTTPS only
   - to: []
     ports:
     - protocol: TCP
       port: 443
+
+---
+# Production Network Policy with Maximum Security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: stateful-app-netpol-production
+  namespace: stateful-production
+  labels:
+    app: stateful-app
+    environment: production
+    security-tier: critical
+    compliance: "CIS-1.6,NIST-800-190"
+  annotations:
+    network-policy.kubernetes.io/description: "Production network policy with maximum security controls"
+    security.compliance/reviewed-by: "security-team@company.com"
+    security.compliance/review-date: "2024-01-01"
+spec:
+  podSelector:
+    matchLabels:
+      app: stateful-app
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Only allow traffic from specific, verified sources
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+          environment: production
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ingress-nginx
+          security-verified: "true"
+    ports:
+    - protocol: TCP
+      port: 8000
+      name: https-only
+  
+  # Monitoring with strict source verification
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+          environment: production
+      podSelector:
+        matchLabels:
+          app: prometheus
+          security-verified: "true"
+    ports:
+    - protocol: TCP
+      port: 8000
+      name: secure-metrics
+  
+  egress:
+  # Highly restricted DNS (only to system DNS)
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  
+  # Only allow HTTPS to specific external endpoints (can be further restricted)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+      name: verified-https-only
