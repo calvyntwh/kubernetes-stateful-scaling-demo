@@ -1,3 +1,4 @@
+---
 # Production resource limits
 apiVersion: apps/v1
 kind: Deployment
@@ -7,11 +8,11 @@ spec:
   template:
     spec:
       containers:
-      - name: stateful-app
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "200m"
-          limits:
-            memory: "512Mi"
+        - name: stateful-app
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
             cpu: "1000m"

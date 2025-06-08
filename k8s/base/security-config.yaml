@@ -15,18 +15,18 @@ data:
   security-standards: |
     Pod Security Standards Configuration:
     - Enforce: restricted
-    - Audit: restricted  
+    - Audit: restricted
     - Warn: restricted
-    
+
     This replaces the deprecated Pod Security Policy.
     All pods must comply with the 'restricted' security standard.
-  
+
   network-policy: |
     Network Security Controls:
     - Ingress: Restricted to specific namespaces and pods
     - Egress: Limited to DNS, HTTPS, and internal services
     - No unrestricted traffic allowed
-  
+
   container-security: |
     Container Security Requirements:
     - Non-root execution (runAsNonRoot: true)
@@ -53,7 +53,7 @@ data:
     - 4.2.4: Minimize the admission of containers with the NET_RAW capability ✅
     - 4.2.5: Minimize the admission of containers with capabilities ✅
     - 4.2.6: Minimize the admission of HostNetwork, HostPID, HostIPC ✅
-    
+
   nist-controls: |
     NIST Cybersecurity Framework Controls:
     - AC-6: Least Privilege ✅

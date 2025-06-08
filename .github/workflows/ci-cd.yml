@@ -1,3 +1,4 @@
+---
 name: CI/CD Pipeline
 
 on:
@@ -13,47 +14,47 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.13'
-    
+
     - name: Install uv
       uses: astral-sh/setup-uv@v3
       with:
         enable-cache: true
-    
+
     - name: Install dependencies
       run: |
         uv sync --frozen
         uv add --dev pytest pytest-asyncio httpx
-    
+
     - name: Run tests
       run: |
         # Import test
         uv run python -c "import main; print('✅ Import successful')"
-        
+
         # Security tests
         uv run python test-security.py
-        
+
         # Health check test
         echo "🏥 Starting application for health check..."
         uv run uvicorn main:app --host 0.0.0.0 --port 8000 &
         APP_PID=$!
         sleep 5
-        
+
         # Test health endpoint
         curl -f http://localhost:8000/health || (echo "❌ Health check failed" && kill $APP_PID && exit 1)
         echo "✅ Health check passed"
-        
+
         # Test main page
         curl -f http://localhost:8000/ > /dev/null || (echo "❌ Main page test failed" && kill $APP_PID && exit 1)
         echo "✅ Main page test passed"
-        
+
         # Clean up
         kill $APP_PID
         echo "✅ All tests passed"
@@ -64,7 +65,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -99,11 +100,11 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+
     - name: Deploy to staging
       run: |
         echo "🎭 Deploying to staging environment with Kustomize..."
@@ -114,25 +115,25 @@ jobs:
     needs: [build-and-push, deploy-staging]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    environment: 
+    environment:
       name: production
       url: https://your-production-url.com
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+
     - name: Security validation before production
       run: |
         echo "🔒 Running final security validation..."
         bash validate-security.sh
-        
+
     - name: Deploy to production
       run: |
         echo "🚀 Deploying to production environment with Kustomize..."
         echo "kubectl apply -k k8s/overlays/production"
         echo "kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=stateful-production --timeout=300s"
-        
+
     - name: Post-deployment health check
       run: |
         echo "🏥 Running post-deployment health checks..."
@@ -143,11 +144,11 @@ jobs:
     needs: [test, build-and-push]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+
     - name: Run compliance checks
       run: |
         echo "🔍 Running security compliance checks for PR..."

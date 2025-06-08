@@ -467,15 +467,15 @@ echo "============================="
 # Run validation functions and capture their output
 validate_pod_security_standards > /tmp/pss_output.txt 2>&1
 pod_security_score=$(grep "SCORE:" /tmp/pss_output.txt | cut -d: -f2)
-cat /tmp/pss_output.txt | grep -v "SCORE:"
+grep -v "SCORE:" /tmp/pss_output.txt
 
 validate_enhanced_network_policies > /tmp/netpol_output.txt 2>&1  
 network_policy_score=$(grep "SCORE:" /tmp/netpol_output.txt | cut -d: -f2)
-cat /tmp/netpol_output.txt | grep -v "SCORE:"
+grep -v "SCORE:" /tmp/netpol_output.txt
 
 validate_modern_security_configs > /tmp/modern_output.txt 2>&1
 modern_config_score=$(grep "SCORE:" /tmp/modern_output.txt | cut -d: -f2)
-cat /tmp/modern_output.txt | grep -v "SCORE:"
+grep -v "SCORE:" /tmp/modern_output.txt
 
 # Clean up temp files
 rm -f /tmp/pss_output.txt /tmp/netpol_output.txt /tmp/modern_output.txt

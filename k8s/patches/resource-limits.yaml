@@ -1,4 +1,17 @@
-# Resource limits patch for demo environment
+---
+# Resspec:
+  template:
+    spec:
+      containers:
+        - name: stateful-app
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

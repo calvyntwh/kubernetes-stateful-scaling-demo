@@ -1,3 +1,4 @@
+---
 services:
   stateful-guestbook:
     image: stateful-guestbook:latest

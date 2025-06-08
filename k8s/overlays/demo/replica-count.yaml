@@ -1,3 +1,4 @@
+---
 # Demo replica configuration
 apiVersion: apps/v1
 kind: Deployment

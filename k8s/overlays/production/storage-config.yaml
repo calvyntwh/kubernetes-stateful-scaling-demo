@@ -1,3 +1,4 @@
+---
 # Production storage configuration
 apiVersion: v1
 kind: PersistentVolumeClaim
