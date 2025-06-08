@@ -1,4 +1,4 @@
-.PHONY: help build run test clean security-test k8s-deploy k8s-deploy-staging k8s-deploy-production k8s-clean k8s-clean-demo k8s-scale k8s-scale-demo k8s-logs k8s-status k8s-security-check k8s-compliance-report k8s-benchmark k8s-diff k8s-validate k8s-preview k8s-status-all
+.PHONY: help build run test clean security-test k8s-deploy k8s-clean k8s-clean-demo k8s-scale k8s-scale-demo k8s-logs k8s-status k8s-security-check k8s-compliance-report k8s-benchmark k8s-diff k8s-validate k8s-preview k8s-status-all
 
 # Default values
 IMAGE_NAME ?= stateful-guestbook
@@ -70,31 +70,17 @@ scan-docker: build ## Run Docker security scanning
 	@command -v hadolint >/dev/null 2>&1 && hadolint Dockerfile || echo "⚠️  hadolint not installed"
 	@echo "✅ Docker security scan complete"
 
-k8s-deploy: ## Deploy to Kubernetes (default environment)
-	@echo "☸️  Deploying to Kubernetes with Kustomize..."
+k8s-deploy: ## Deploy to Kubernetes demo environment
+	@echo "☸️  Deploying to Kubernetes demo environment with Kustomize..."
 	kubectl apply -k k8s/overlays/demo
 	kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=stateful-demo --timeout=120s
-	@echo "✅ Deployed to Kubernetes with enhanced security"
+	@echo "✅ Deployed to Kubernetes demo environment with enhanced security"
 
-k8s-deploy-staging: ## Deploy to staging environment
-	@echo "🎭 Deploying to staging environment..."
-	kubectl apply -k k8s/overlays/staging
-	kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=stateful-staging --timeout=120s
-	@echo "✅ Deployed to staging environment"
-
-k8s-deploy-production: ## Deploy to production environment
-	@echo "🚀 Deploying to production environment..."
-	kubectl apply -k k8s/overlays/production
-	kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=stateful-production --timeout=120s
-	@echo "✅ Deployed to production environment"
-
-k8s-clean: ## Clean up Kubernetes resources (all environments)
-	@echo "🧹 Cleaning up Kubernetes resources..."
+k8s-clean: ## Clean up Kubernetes demo resources
+	@echo "🧹 Cleaning up Kubernetes demo resources..."
 	kubectl delete -k k8s/overlays/demo --ignore-not-found=true
-	kubectl delete -k k8s/overlays/staging --ignore-not-found=true
-	kubectl delete -k k8s/overlays/production --ignore-not-found=true
-	kubectl delete namespace stateful-demo stateful-staging stateful-production --ignore-not-found=true
-	@echo "✅ Kubernetes resources cleaned up"
+	kubectl delete namespace stateful-demo --ignore-not-found=true
+	@echo "✅ Kubernetes demo resources cleaned up"
 
 k8s-clean-demo: ## Clean up demo environment only
 	@echo "🧹 Cleaning up demo environment..."

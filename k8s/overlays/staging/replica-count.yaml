@@ -1,8 +1,0 @@
----
-# Staging replica configuration
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: stateful-app-deployment
-spec:
-  replicas: 2  # More replicas for staging testing

@@ -96,52 +96,39 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
 
-  deploy-staging:
+  deploy-demo:
     needs: build-and-push
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Deploy to staging
-      run: |
-        echo "🎭 Deploying to staging environment with Kustomize..."
-        echo "kubectl apply -k k8s/overlays/staging"
-        echo "kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=stateful-staging --timeout=120s"
-
-  deploy-production:
-    needs: [build-and-push, deploy-staging]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
     environment:
-      name: production
-      url: https://your-production-url.com
+      name: demo
+      url: https://demo.stateful-demo.local
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Security validation before production
+    - name: Security validation before deployment
       run: |
-        echo "🔒 Running final security validation..."
+        echo "🔒 Running security validation..."
         bash validate-security.sh
 
-    - name: Deploy to production
+    - name: Deploy to demo environment
       run: |
-        echo "🚀 Deploying to production environment with Kustomize..."
-        echo "kubectl apply -k k8s/overlays/production"
-        echo "kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=stateful-production --timeout=300s"
+        echo "🎭 Deploying to demo environment with Kustomize..."
+        echo "kubectl apply -k k8s/overlays/demo"
+        echo "kubectl wait --for=condition=ready pod -l app=stateful-app --namespace=stateful-demo --timeout=120s"
 
     - name: Post-deployment health check
       run: |
         echo "🏥 Running post-deployment health checks..."
-        echo "curl -f https://your-production-url.com/health"
-        echo "✅ Production deployment completed successfully"
+        echo "kubectl port-forward -n stateful-demo svc/stateful-app-service 8080:80 &"
+        echo "sleep 5"
+        echo "curl -f http://localhost:8080/health || echo 'Health check will be available after real deployment'"
+        echo "✅ Demo deployment completed successfully"
 
   security-compliance:
-    needs: [test, build-and-push]
+    needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
 

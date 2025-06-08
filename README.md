@@ -35,17 +35,14 @@ This project demonstrates the fundamental scaling limitations of stateful applic
 # Deploy to demo environment
 make k8s-deploy
 
-# Deploy to staging environment  
-make k8s-deploy-staging
-
-# Deploy to production environment
-make k8s-deploy-production
-
 # Scale to see the problem (demo environment)
 make k8s-scale-demo REPLICAS=3
 
-# Check status across all environments
-make k8s-status-all
+# Check status
+make k8s-status
+
+# Clean up when done
+make k8s-clean
 ```
 
 ## 📊 Demo Results
